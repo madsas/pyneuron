@@ -1,0 +1,66 @@
+Fohlmeister JF, Miller RF.
+Impulse encoding mechanisms of ganglion cells in the
+tiger salamander retina.
+J Neurophysiol 1997 Oct;78(4):1935-47
+
+A reprint of this article can be obtained from
+http://jn.physiology.org/cgi/reprint/78/4/1935
+
+This model is initially setup to produce figure 1 automatically.
+After viewing the currents, you may simulate figure 3a in the
+followng way.
+1) close the 6 graph windows.
+2) Destroy the SEClamp object by executing the statement
+	objref VoltageClamp
+3) Select the
+	NEURONMainMenu/File/LoadSession
+menuitem and double click on the
+	fig3a.ses
+file.
+4) press the Init&Run button.
+
+The following parameter changes to the current working code supplied
+by Bob Miller's lab were made in collaboration with
+Michael Hines in order to
+semi-quantitatively reproduce figures 1 and 3a.
+
+1) Table 1 indicates that gnabar_spike = .05 S/cm2. However the curves
+for the Na-current portion of Fig 1 use the default mod file value of
+gnabar_spike = .04 .
+
+2) The initial Ca Rev. Potential of Fig 1 requires that the Table 1 value
+of celsius = 22 degC be used instead of NEURON's default value of 6.3.
+This statement was added to the current.hoc file.
+
+3) To get the fig 1 behavior of slowly increasing calcium concentration
+with constant calcium current over 10 ms we modified current.hoc so that
+depth_cad = 3 (microns)
+taur_cad = 10 (ms)
+instead of the working code values of 2.5 and 1.5 respectively.
+
+4) The working code used a spherical soma of 5um in diameter. This
+was changed to 25um as indicated in the paper and gives the results
+of fig 3 when a current of .02 nA is injected which is the amount
+specified in the paper.
+
+The largest discrepancy is
+that the amplitude of Ca-activated K-current is lower
+in this example model than is indicated in fig 1 of the paper.
+
+Questions about how to execute the model should be addressed to
+michael.hines@yale.edu. Questions about parameters should
+be addressed to
+J. F. Fohlmeister,
+Physiology Dept.,
+6-255 Millard Hall
+University of Minnesota
+435 Delaware St. SE.
+Minneapolis, MN  55455
+
+20120109 capump.mod updated from euler to derivimplicit: see for more:
+http://www.neuron.yale.edu/phpbb/viewtopic.php?f=28&t=592 - TMM
+20130826 Update from Ted Carnevale: capump.mod cleaned up to 1)
+reflect this mechanism is just a simple calcium accumulation mechanism
+that approximates pump action by a first order decay of cai and 2)
+since neither drive_pump nor kt were used for anything, every mention
+of them was deleted for clarity's sake.

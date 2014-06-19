@@ -1,0 +1,116 @@
+objectvar save_window_, rvp_
+objectvar scene_vector_[8]
+objectvar ocbox_, ocbox_list_, scene_, scene_list_
+{ocbox_list_ = new List()  scene_list_ = new List()}
+{pwman_place(0,0,0)}
+{
+save_window_ = new Graph(0)
+save_window_.size(0,2,-0.5,0.2)
+scene_vector_[2] = save_window_
+{save_window_.view(0, -0.5, 2, 0.7, 399, 50, 300.48, 200.32)}
+graphList[1].append(save_window_)
+save_window_.save_name("graphList[1].")
+save_window_.addvar("soma.ina( 0.5 )", 1, 1, 0.547604, 0.526198, 2)
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(0,10,0,1)
+scene_vector_[3] = save_window_
+{save_window_.view(0, 0, 10, 1, 404, 320, 300.48, 200.32)}
+graphList[1].append(save_window_)
+save_window_.save_name("graphList[1].")
+save_window_.addvar("soma.idrk_spike( 0.5 )", 1, 1, 0.496486, 0.885623, 2)
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(0,10,0,0.17)
+scene_vector_[4] = save_window_
+{save_window_.view(0, 0, 10, 0.17, 407, 591, 300.48, 200.32)}
+graphList[1].append(save_window_)
+save_window_.save_name("graphList[1].")
+save_window_.addvar("soma.iak_spike( 0.5 )", 1, 1, 0.51885, 0.761023, 2)
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(0,10,-0.17,3.72529e-09)
+scene_vector_[5] = save_window_
+{save_window_.view(0, -0.17, 10, 0.17, 733, 51, 300.48, 200.32)}
+graphList[1].append(save_window_)
+save_window_.save_name("graphList[1].")
+save_window_.addvar("soma.ica( 0.5 )", 1, 1, 0.550799, 0.717891, 2)
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(0,10,-1.16415e-10,0.006)
+scene_vector_[6] = save_window_
+{save_window_.view(0, -1.16415e-10, 10, 0.006, 735, 319, 300.48, 200.32)}
+graphList[1].append(save_window_)
+save_window_.save_name("graphList[1].")
+save_window_.addvar("soma.icak_spike( 0.5 )", 1, 1, 0.445368, 0.435144, 2)
+}
+
+//Begin spike
+{
+load_file("family.hoc", "Family")
+}
+{
+ocbox_ = new Family(0)
+}
+{object_push(ocbox_)}
+{
+xstart=-40  xend=40  nstep=5  setval() build()
+
+variable = "VoltageClamp.amp1"
+generator = "run()"
+}
+{object_pop()}
+{
+ocbox_ = ocbox_.box
+ocbox_.map("spike", 125, 134, 242.88, 250.56)
+}
+objref ocbox_
+//End spike
+
+{
+save_window_ = new Graph(0)
+save_window_.size(0,10,60,140)
+scene_vector_[7] = save_window_
+{save_window_.view(0, 60, 10, 80, 737, 591, 300.48, 200.32)}
+graphList[0].append(save_window_)
+save_window_.save_name("graphList[0].")
+save_window_.addvar("soma.eca( 0.5 )", 1, 1, 0.423003, 0.933546, 2)
+}
+{
+xpanel("RunControl", 0)
+v_init = -65
+xvalue("Init","v_init", 1,"stdinit()", 1, 1 )
+xbutton("Init & Run","run()")
+xbutton("Stop","stoprun=1")
+runStopAt = 5
+xvalue("Continue til","runStopAt", 1,"{continuerun(runStopAt) stoprun=1}", 1, 1 )
+runStopIn = 1
+xvalue("Continue for","runStopIn", 1,"{continuerun(t + runStopIn) stoprun=1}", 1, 1 )
+xbutton("Single Step","steprun()")
+t = 10
+xvalue("t","t", 2 )
+tstop = 10
+xvalue("Tstop","tstop", 1,"tstop_changed()", 0, 1 )
+dt = 0.025
+xvalue("dt","dt", 1,"setdt()", 0, 1 )
+steps_per_ms = 40
+xvalue("Points plotted/ms","steps_per_ms", 1,"setdt()", 0, 1 )
+xcheckbox("Quiet",&stdrun_quiet,"")
+realtime = 0
+xvalue("Real Time","realtime", 0,"", 0, 1 )
+xpanel(90,427)
+}
+{
+xpanel("ca_ion (Globals)", 0)
+cai0_ca_ion = 0.0001
+xvalue("cai0_ca_ion","cai0_ca_ion", 1,"", 0, 0 )
+cao0_ca_ion = 1.8
+xvalue("cao0_ca_ion","cao0_ca_ion", 1,"", 0, 0 )
+xpanel(94,740)
+}
+objectvar scene_vector_[1]
+{doNotify()}
