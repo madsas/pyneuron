@@ -132,6 +132,7 @@ class Simulation(object):
 		self.sim_time = sim_time
 		self.dt = dt
 		self.go_already = False
+		self.hasCV=False
 		self.delay=delay
 		self.amp=amp
 		self.dur=dur
@@ -159,6 +160,7 @@ class Simulation(object):
 			#be careful to keep the Vectors you are playing in existence
 			self.v_ext=v_ext
 			self.t_ext=t_ext
+			self.hasCV=True
 
 		self.stim = stim
 
@@ -171,7 +173,7 @@ class Simulation(object):
 			plt.xlabel("Time [ms]")
 			plt.ylabel("Voltage [mV]")
 			plt.axhline(0,color="black",ls="--")
-			if showStim:
+			if showStim and self.hasCV:
 				v = np.array(self.t_ext)
 				w = np.array(self.v_ext)
 				pltScale=np.abs(max(y))/np.abs(max(w))

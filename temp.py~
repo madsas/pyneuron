@@ -5,5 +5,5 @@ x.nseg=1
 
 x.insert('extracellular')
 for seg in x: 
-	seg.extracellular.xc[0]=0
+	seg.extracellular.xc=0
 

@@ -38,7 +38,7 @@ class RGC_Neuron(object):
 	To check the morphology with NEURON gui:
 	>>> from neuron import gui
 	"""
-	def __init__(self, d_sites=[],d_length=150, d_diam=3):
+	def __init__(self, axonFlag=True,d_sites=[],d_length=150, d_diam=3):
 		"""
 		This method will be executed when you run
 		>>> mycell = RGC_Neuron()
@@ -60,7 +60,10 @@ class RGC_Neuron(object):
 #		h('ena=35')
 #		h('ek=-75')
 # creating compartments
+		#SOMA
 		self.soma = make_compartment(25, 25) #default soma
+		#AXON
+
 		self.dendrites = {}
 		if d_sites:
 			for site in sites:
