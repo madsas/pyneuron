@@ -1,0 +1,26 @@
+import matplotlib.pyplot as plt
+import sqlite3 as sqlite
+import pyneurlib as pdl
+import numpy as np
+
+#cell = pdl.RGC_Neuron('fohlmeister_geo_params_ultralight.csv',ex_flag = True, ex_rand = 70)
+cell = pdl.RGC_Neuron('fohlmeister_geo_params_ultralight.csv',ex_flag = True)
+#cell = pdl.RGC_Neuron('fohlmeister_geo_params_light.csv',ex_flag = True)
+#cell = pdl.RGC_Neuron('fohlmeister_geo_params.csv',ex_flag = True)
+
+mydt = .01
+mydur = 100
+#mysimtime = 500
+mysimtime = 10
+myrho = 7900
+mydelay = 2
+
+triamp = 625
+
+#[t,i]=pdl.make_triphasic(mydelay,mydur,mydt,mysimtime,triamp)
+[t,i]=pdl.make_square(mydelay,triamp,mydur,mysimtime,mydt)
+sim = pdl.Simulation(cell,mydt,sim_time = mysimtime)
+sim.set_exstim([t,i],x_dist=0,y_dist=3,rho = myrho)
+sim.go()
+sim.show(showStim=True)
+

@@ -1,9 +1,15 @@
-x=neuron.h.Section()
-x.L=20
-x.diam=20
-x.nseg=1
+fig, ax = plt.subplots()
+im = ax.imshow(outsoma, cmap=cm.RdBu, vmin=-0, vmax=1000, extent=[min(distlist), max(distlist), min(durlist), max(durlist)], aspect = 'auto')
+im.set_interpolation('none')
+cb = fig.colorbar(im, ax=ax)
+plt.xlabel('Electrode Distance [microns]')
+plt.ylabel('Pulse duration [ms]')
+plt.title('Threshold vs. Square Pulse Amplitude and Duration (Soma)')
 
-x.insert('extracellular')
-for seg in x: 
-	seg.extracellular.xc[0]=0
-
+fig, ax = plt.subplots()
+im = ax.imshow(outaxon, cmap=cm.RdBu, vmin=0, vmax=1000, extent=[min(distlist), max(distlist), min(durlist), max(durlist)], aspect = 'auto')
+im.set_interpolation('none')
+cb = fig.colorbar(im, ax=ax)
+plt.xlabel('Electrode Distance [microns]')
+plt.ylabel('Pulse duration [ms]')
+plt.title('Threshold vs. Square Pulse Amplitude and Duration (Axon)')

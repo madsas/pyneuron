@@ -1,0 +1,16 @@
+/*
+
+*/
+
+
+
+objref dvdt_0p5 
+
+/* axon(0.5) */
+dvdt_0p5 = new Vector()
+dvdt_0p5.deriv(rec_0p5,dt,1)
+
+dvdt_0p5.plot(phaseplot_axon,rec_0p5)
+phaseplot_axon.exec_menu("View = plot")
+
+phaseplot_axon.exec_menu("Keep Lines")

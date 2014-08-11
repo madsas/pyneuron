@@ -1,0 +1,22 @@
+/* --------------------
+  Current Injection to Uniform Axon
+  ------------------*/
+  
+  objref axonCurrent1
+  
+  axon {
+    axonCurrent1=new IClamp(injectPosition)
+    axonCurrent1.dur = 5000
+    axonCurrent1.del = delay
+    axonCurrent1.amp = 1
+  }
+
+
+
+
+/* Panel to Change Amplitude */  
+  {
+  xpanel("Axon Injection", 0)
+  xvalue("Stim amp","axonCurrent1.amp")
+  xpanel(8,700)
+  }

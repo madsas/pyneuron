@@ -1,0 +1,58 @@
+ /* --------------------------------------------------------------
+   Distinct contributions of Nav1.6 and Nav1.2 in action potential initiation and backpropagation
+   Wenqin Hu, Cuiping Tian, Tun Li, Mingpo Yang, Han Hou, Yousheng Shu
+  
+   Model based on:   
+   Z. F. Mainen and T. J. Sejnowski (1996)  dendritic structure 
+   Shu et al. (2006) artifical axonal structure
+
+   by:
+   Wenqin Hu    huwenqin@ion.ac.cn
+   Han Hou     hh@ion.ac.cn
+   
+------------------------------------------------------------- */
+
+objref p
+p=new PWManager() 
+
+xopen("$(NEURONHOME)/lib/hoc/noload.hoc")  
+nrnmainmenu()
+
+
+/*----------------------------------------------
+  Function
+-----------------------------------------------*/
+
+proc Pyramidal(){
+  //p.hide(2)
+  forall delete_section()
+  xopen ("experiment/Pyramidal_Main.hoc")  
+}
+
+proc UniformAxon(){
+  //p.hide(2)
+  forall delete_section()
+  xopen ("experiment/UniformAxon_Main.hoc")  
+}
+
+proc SingleComp(){
+  //p.hide(2)
+  forall delete_section()
+  xopen ("experiment/SingleComp_Main.hoc")  
+}
+
+/* ----------------------------------------------
+  Initial Menu
+-----------------------------------------------*/
+
+
+
+xpanel("Nav1.6 and Nav1.2",0)
+{
+  xbutton( " 1. Action Potential Initiation in Neocortical L5 Pyramidal Cell (Figure 5d,e)", " Pyramidal()")
+  xbutton( " 2. Action Potential Initiation in Uniform Axon (Figure 5b,c)", " UniformAxon()")
+  xbutton( " 3. Channel Tests in Single Compartment Model", " SingleComp()")
+  
+}
+xpanel(100,100)
+

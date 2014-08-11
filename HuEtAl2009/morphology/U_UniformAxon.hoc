@@ -1,0 +1,12 @@
+/* 
+
+*/
+
+create axon
+access axon
+
+axon {
+  L=6000
+  nseg=2000
+  diam=5
+  }

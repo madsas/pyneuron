@@ -1,0 +1,55 @@
+/*
+  Change Densities to Test the Threshold Voltage/Current for AP Initiation in Uniform Axon
+*/
+
+objref  f
+
+
+thr=70  // v/s
+
+// Recording Preparing
+f = new File()
+f.wopen("recording/ThreV.dat")
+f.printf("L = %g, nseg = %g, E_pas = %g, v_init = %g\n",L,nseg,e_pas,v_init)
+f.printf("Threshold Criterion: dv/dt> %gV/S . Injecting Current: %gnA at x=%g \n\n",thr,axonCurrent1.amp,injectPosition)
+f.printf("percent_gna16: gna16(.5)/(gna16(.5)+gna12(.5))\nBoundaryIndex= (v(1)-v_init)/(v(.5)-v_init) \n\n")
+f.printf("gbar_na12    gbar_na16     ThreV    t   gna12(.5)  gna16(.5)   percent_gna16   BoundaryIndex\n")
+
+loops=0
+  
+// Loops
+for (j=81;j>=1;j=j-10) {
+  loops=loops+1
+  for (i=81;i>=1;i=i-10){
+  
+    // Parameter setting
+    gna12=i*80
+    gna16=j*80
+    install_channels()   // Recall from "U_DensityMech.hoc" 
+    
+    // Initiation
+    init()
+    
+    dt=0.05
+    while (t<delay-2*dt) {fadvance()}
+    
+    dt=0.01
+    lastv=v(injectPosition) 
+    // Run until Trigger 
+    while (t<10) {
+      fadvance()
+      flushPlot()
+      if (t>delay+0.1 && v(injectPosition)-lastv>=thr*dt) break
+      lastv=v(injectPosition)
+    }
+    
+    xopen("lib/U_Dvdt.hoc")
+    
+    // Recording 
+    printf("%g %g %g %g %g %g %g %g\n", gna12,gna16,v(injectPosition),t,gna_na12(injectPosition), gna_na16(injectPosition), gna_na16(injectPosition)/(gna_na12(injectPosition)+gna_na16(injectPosition)),(v(1)-v_init)/(v(injectPosition)-v_init))
+    f.printf("%g %g %g %g %g %g %g %g\n", gna12,gna16,v(injectPosition),t,gna_na12(injectPosition), gna_na16(injectPosition), gna_na16(injectPosition)/(gna_na12(injectPosition)+gna_na16(injectPosition)),(v(1)-v_init)/(v(injectPosition)-v_init))   
+  }
+  
+}
+
+f.close()

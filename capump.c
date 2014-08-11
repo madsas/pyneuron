@@ -1,7 +1,6 @@
 /* Created by Language version: 6.2.0 */
 /* VECTORIZED */
 #include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
 #include "scoplib.h"
 #undef PI
@@ -58,14 +57,10 @@ extern double hoc_Exp();
  /* declaration of user functions */
  static int _mechtype;
 extern int nrn_get_mechtype();
- extern void _nrn_setdata_reg(int, void(*)(Prop*));
- static void _setdata(Prop* _prop) {
- _extcall_prop = _prop;
- }
  static _hoc_setdata() {
  Prop *_prop, *hoc_getdata_range();
  _prop = hoc_getdata_range(_mechtype);
-   _setdata(_prop);
+ _extcall_prop = _prop;
  ret(1.);
 }
  /* connect user functions to hoc names */
@@ -157,7 +152,6 @@ static void nrn_alloc(_prop)
   _extcall_thread = (Datum*)ecalloc(4, sizeof(Datum));
   _thread_mem_init(_extcall_thread);
  _mechtype = nrn_get_mechtype(_mechanism[1]);
-     _nrn_setdata_reg(_mechtype, _setdata);
      _nrn_thread_reg(_mechtype, 1, _thread_mem_init);
      _nrn_thread_reg(_mechtype, 0, _thread_cleanup);
      _nrn_thread_reg(_mechtype, 2, _update_ion_pointer);

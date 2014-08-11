@@ -1,0 +1,129 @@
+{load_file("nrngui.hoc")}
+objectvar save_window_, rvp_
+objectvar scene_vector_[4]
+objectvar ocbox_, ocbox_list_, scene_, scene_list_
+{ocbox_list_ = new List()  scene_list_ = new List()}
+{pwman_place(0,0,0)}
+
+//Begin CellBuild[0]
+{
+load_file("celbild.hoc", "CellBuild")
+}
+{ocbox_ = new CellBuild(1)}
+{object_push(ocbox_)}
+{
+version(5.7)
+continuous = 0
+}
+{object_push(topol)}
+{
+first = 0
+slist.remove_all()
+sname = "dend"
+objref tobj
+}
+{
+tobj = new CellBuildSection("dend",0, 0, tobj, 0) slist.append(tobj)
+  tobj.position(0,0,15,0) tobj.lx=38.5787 tobj.ly=-22.5719 tobj.i3d=0
+tobj = new CellBuildSection("dend",1, 0, tobj, 0) slist.append(tobj)
+tobj.parent=slist.object(0)
+  tobj.position(0,0,-15,0) tobj.lx=-6.09137 tobj.ly=-27.6481 tobj.i3d=0
+tobj = new CellBuildSection("dend",2, 0, tobj, 1) slist.append(tobj)
+tobj.parent=slist.object(1)
+  tobj.position(-15,0,-30,0) tobj.lx=-43.6548 tobj.ly=23.1134 tobj.i3d=0
+tobj = new CellBuildSection("dend",3, 0, tobj, 1) slist.append(tobj)
+tobj.parent=slist.object(2)
+  tobj.position(-30,0,-150,0) tobj.lx=-94.4162 tobj.ly=-21.5567 tobj.i3d=0
+all_init()
+}
+for i=0, slist.count-1 {slist.object(i).rdses()}
+{object_pop()}
+{
+}
+{object_push(subsets)}
+{first = 0}
+{ tobj = snlist.object(0)}
+{consist()}
+{object_pop()}
+{
+}
+{object_push(geom)}
+{
+first = 0
+tobj = new GeoSpec(6)
+tobj.value = 2
+bild.topol.slist.object(0).geo.append(tobj)
+tobj = new GeoSpec(2)
+tobj.value = 20
+bild.topol.slist.object(0).geo.append(tobj)
+tobj = new GeoSpec(3)
+tobj.value = 30
+bild.topol.slist.object(0).geo.append(tobj)
+tobj = new GeoSpec(6)
+tobj.value = 3
+bild.topol.slist.object(1).geo.append(tobj)
+tobj = new GeoSpec(2)
+tobj.value = 45
+bild.topol.slist.object(1).geo.append(tobj)
+tobj = new GeoSpec(3)
+tobj.value = 1
+bild.topol.slist.object(1).geo.append(tobj)
+tobj = new GeoSpec(6)
+tobj.value = 6
+bild.topol.slist.object(2).geo.append(tobj)
+tobj = new GeoSpec(2)
+tobj.value = 90
+bild.topol.slist.object(2).geo.append(tobj)
+tobj = new GeoSpec(3)
+tobj.value = 0.3
+bild.topol.slist.object(2).geo.append(tobj)
+tobj = new GeoSpec(2)
+tobj.value = 5310
+bild.topol.slist.object(3).geo.append(tobj)
+tobj = new GeoSpec(3)
+tobj.value = 0.7
+bild.topol.slist.object(3).geo.append(tobj)
+tobj = new GeoSpec(6)
+tobj.value = 354
+bild.topol.slist.object(3).geo.append(tobj)
+set_default()
+}
+{object_pop()}
+{
+}
+{object_push(memb)}
+{first=0}
+{object_pop()}
+{
+}
+{object_push(manage)}
+{
+first = 0
+classname = "Cell"
+etop=1 esub=1 egeom=1 emem=1
+itop=1 isub=0 igeom=0 imem=0
+bild.topol.names_off = 0
+bild.topol.circles_off = 0
+output_index = 0  output_x = 1
+thresh = 10
+}
+{object_pop()}
+{
+cexport()
+}
+{object_pop()}
+{
+save_window_=ocbox_.gtopol
+save_window_.size(-200,200,-150,150)
+scene_vector_[2] = save_window_
+ocbox_.gtopol = save_window_
+save_window_.save_name("ocbox_.gtopol")
+}
+{
+ocbox_.map("CellBuild[0]", 260, 127, 726.75, 339.75)
+}
+objref ocbox_
+//End CellBuild[0]
+
+objectvar scene_vector_[1]
+{doNotify()}

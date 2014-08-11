@@ -1,0 +1,20 @@
+
+/* Axon Current Injection: the Test of Backpropagation */ 
+
+  objref axonCurrent,somaVC
+  proc set_stim(){
+    
+    /* axonal injection to generate a backpropagating AP  */
+    access nakeaxon
+    axonCurrent=new IClamp(0.1)
+    axonCurrent.dur = 1
+    axonCurrent.del = delay
+    axonCurrent.amp = 1
+   
+    /* Voltage clamp at soma to test the failure threshold of backpropagation  
+    access soma
+    somaVC=new VClamp(0.5)
+    somaVC.dur[0]=delay     // stop clamping as soon as the axonal injection begins
+    somaVC.amp[0]=-70*/ 
+  }  
+   

@@ -1,0 +1,130 @@
+    soma.gbar_na12=100
+    soma.gbar_na16=100
+    soma.gbar_na=100
+
+    vhalf_na12=-30
+    vhalf_na16=-43
+    
+    vshift_na12 = -35 - vhalf_na12  // negative shift of input voltage, high threshold  -30mV    
+    vshift_na16 = -35 - vhalf_na16    // positive shift of input voltage, low threshold  -43mV
+  
+objref se
+se=new SEClamp(.5)
+  //act_step=15 
+
+
+
+objref recgna12
+objref recgna16 
+objref gna_na12_apeak ,gna_na12_ipeak
+objref gna_na16_apeak, gna_na16_ipeak
+objref vAct,vInact 
+objref curve
+
+recgna12=new Vector()
+recgna16=new Vector()
+gna_na12_apeak=new Vector()
+gna_na16_apeak=new Vector()
+gna_na12_ipeak=new Vector()
+gna_na16_ipeak=new Vector()
+vAct=new Vector()
+vInact=new Vector()
+curve=new Graph()
+
+
+curve.exec_menu("Keep lines")
+
+
+proc act(){
+  
+ 
+
+    gna_na12_apeak.clear()      
+    gna_na16_apeak.clear()
+
+     for i=0,2{
+      Graph[i].erase()
+      }
+
+   v_init=-120
+   vsoma_init=v_init  
+
+   se.dur1=30
+   se.amp1=-120
+   se.dur2=30
+   se.amp2=-120  
+
+
+
+ 
+   for i=0,14 {
+  
+   recgna12.record(&soma.gna_na12(0.5)) 
+   recgna16.record(&soma.gna_na16(0.5)) 
+   amp2_init=-120
+   se.amp2=amp2_init+10*i
+   run()
+   
+    ss  = recgna12.max()
+    aa  = recgna16.max()
+ 
+    gna_na12_apeak.append(ss)
+    gna_na16_apeak.append(aa)  
+    vAct.append(se.amp2)
+    }
+    gna_na12_apeak.printf
+    gna_na16_apeak.printf  
+    
+    gna_na12_apeak.plot(curve,vAct,1,1)
+    gna_na16_apeak.plot(curve,vAct,2,1)
+    curve.exec_menu("View = plot")
+}
+
+
+
+proc inact(){
+
+     for i=0,2{
+      Graph[i].erase()
+      }
+
+   gna_na12_ipeak.clear()
+    gna_na16_ipeak.clear()
+
+   se.dur1=30
+   se.amp1=-120
+   se.dur2=30
+   se.amp2=20  
+
+
+   v_init=-120
+ 
+   for i=0,14 {
+  
+ 
+   recgna12.record(&soma.gna_na12(0.5)) 
+   recgna16.record(&soma.gna_na16(0.5)) 
+   amp1_init = -120
+   v_init=amp1_init+10*i
+      vsoma_init=v_init 
+   se.amp1=amp1_init+10*i
+   run()
+   
+    ss  = recgna12.max()
+    aa  = recgna16.max()
+ 
+    gna_na12_ipeak.append(ss)
+    gna_na16_ipeak.append(aa)
+    vInact.append(se.amp1)  
+    }
+
+    gna_na12_ipeak.printf
+    gna_na16_ipeak.printf   
+    
+    gna_na12_ipeak.plot(curve,vInact,1,1)
+    gna_na16_ipeak.plot(curve,vInact,2,1)
+    curve.exec_menu("View = plot")
+    
+    
+    }
+

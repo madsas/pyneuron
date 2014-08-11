@@ -1,0 +1,90 @@
+/* change AIS Nav1.2, somatic Nav1.2, and AIS Nav1.6 to test the backpropagation failure threshold  */
+
+
+// parameters 
+precision=0.2
+delay=1
+tstop=4
+set_stim()
+
+// Change what?
+changeWhat=1     // 1: AIS Nav1.2;  2: SD Nav1.2;  3: AIS Nav1.6
+
+// Recording Preparing
+
+objref f1
+f1 = new File()
+
+if (changeWhat==1) {
+    f1.wopen("recording/failureThres_AISNa12.dat")
+    f1.printf("AISNa12_dens    AISNa12_V1/2     failureThres  \n")
+    maxDens=40        // CHANGE HERE!!
+    minDens=20         // CHANGE HERE!!
+    stepDens=4
+  } else if (changeWhat==2) {
+    f1.wopen("recording/failureThres_SDNa12.dat")
+    f1.printf("SDNa12_dens     SDNa12_V1/2      failureThres  \n")
+    maxDens= 1.5  // CHANGE HERE!!
+    minDens= 0.5  // CHANGE HERE!!
+    stepDens=0.2
+  } else {
+    f1.wopen("recording/failureThres_AISNa16.dat")
+    f1.printf("AISNa16_dens    AISNa16_V1/2      failureThres  \n")
+    maxDens=60    // CHANGE HERE!!
+    minDens=20     // CHANGE HERE!!
+    stepDens=4
+    }
+ 
+// Loops
+
+for (dTimes=maxDens;dTimes>=minDens;dTimes=dTimes-stepDens){    
+  /* running variables */
+  high=-60
+  low=-120
+
+  for (vHalf=-30;vHalf<=-30;vHalf=vHalf+1){                     // CHANGE HERE!!
+      
+      /* AIS Nav1.2£ºna12;  SD Nav1.2:na ; AIS Nav1.6:na16; */
+      if (changeWhat==1) {
+        gna12_ais_max = dTimes*80
+        vhalf_na12 = vHalf
+        } else if (changeWhat==2){
+        gna12_soma = dTimes*80
+        gna12_dend = dTimes*80
+        vhalf_na = vHalf
+        } else {
+        gna16_ais_max = dTimes*80
+        vhalf_na16 = vHalf
+        }      
+      install_channels()   // Recall from "P_DensityMech.hoc"
+      
+      v_init=(high+low)/2
+      while (abs(high-low)>precision){
+        init()
+        e_pas=-70
+        
+        printf("%g ",v_init)
+        run()
+            
+        if (rec_soma.max()>0) {       // If this v_init ensures credible backpropagation, get lower
+          high=v_init
+          v_init=(high+low)/2
+          printf("... OK || ")
+        }else{                       // If failure, get higher
+          low=v_init
+          v_init=(low+high)/2     
+          printf("... Failure || ")     
+        } 
+      }
+      
+      printf("\nDone!  %g  %g  %g\n",dTimes,vHalf,(high+low)/2)
+      f1.printf("%g    %g     %g\n",dTimes*80,vHalf,(high+low)/2)
+      
+      high=(-60+v_init+5)/2-abs(-60-v_init-5)/2
+      low=v_init-5
+  }
+}
+
+f1.close()
+
+

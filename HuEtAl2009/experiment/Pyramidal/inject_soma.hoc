@@ -1,0 +1,20 @@
+
+/* Soma Current Injection£º the test of AP initiation */ 
+
+  access soma
+
+  objref somaCurrent1
+  proc set_stim(){
+    somaCurrent1=new IClamp(0.5)
+    somaCurrent1.dur = 5000
+    somaCurrent1.del = delay
+    somaCurrent1.amp = 1
+    }
+  set_stim()
+  
+/* Panel to Change Amplitude */  
+  {
+  xpanel("Soma Injection", 0)
+  xvalue("Stim amp","somaCurrent1.amp")
+  xpanel(8,700)
+  }

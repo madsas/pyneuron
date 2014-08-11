@@ -1,0 +1,65 @@
+/* -----------------------------------------------
+    Data Recording
+-------------------------------------------------*/
+
+/* Vectors Recording as Running  */
+
+
+objref rec_soma, rec_hill, rec_ais[10], rec_nakeaxon[9], rec_node0, rec_mat
+proc recordV(){
+    // soma
+    rec_soma= new Vector()
+    rec_soma.record(&soma.v(0.5))
+    // hill
+    rec_hill= new Vector()
+    rec_hill.record(&hill.v(.5))
+    // ais
+    for i=0,9 {
+      rec_ais[i]= new Vector()
+      rec_ais[i].record(&ais[i].v(.5))
+      }
+    // nakeaxon
+    for i=1,9 {
+      rec_nakeaxon[i-1]= new Vector()
+      rec_nakeaxon[i-1].record(&nakeaxon.v(i*0.1))
+      }
+    // node
+    rec_node0= new Vector() 
+    rec_node0.record(&node[0].v(.5))
+  }
+recordV()
+
+
+/* Save to File */
+
+objref f
+proc saveV() {
+  
+  rec_mat= new Matrix()
+  rec_mat.resize(rec_soma.size(),22)
+  // Set Matrix Column Values
+  rec_mat.setcol(0,rec_soma)
+  rec_mat.setcol(1,rec_hill)
+  for i=0,9 {
+    rec_mat.setcol(i+2,rec_ais[i])
+    }
+  for i=1,9 {
+    rec_mat.setcol(i+11, rec_nakeaxon[i-1])
+    }
+  rec_mat.setcol(21,rec_node0)
+
+  f = new File()  //savdata is a file pointer
+  f.wopen("recording/allVTraces.dat")  //open a file with a defined name to save data
+  f.printf(" soma   hill   ais0    ais1    ais2    ais3    ais4    ais5    ais6    ais7    ais8    ais9   nake0.1    nake0.2    nake0.3    nake0.4    nake0.5    nake0.6    nake0.7    nake0.8    nake0.9    node[0]\n")            
+  rec_mat.fprint(f," %g")    
+  f.close()
+  
+  printf("Traces saved.\n")
+}
+
+xpanel("Save")
+{
+xbutton("Save Voltage Traces","saveV()")
+xpanel(7,600)
+}
+

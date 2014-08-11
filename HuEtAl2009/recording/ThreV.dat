@@ -1,0 +1,7 @@
+L = 6000, nseg = 2000, E_pas = -70, v_init = -80
+Threshold Criterion: dv/dt> 70V/S . Injecting Current: 1nA at x=0.5 
+
+percent_gna16: gna16(.5)/(gna16(.5)+gna12(.5))
+BoundaryIndex= (v(1)-v_init)/(v(.5)-v_init) 
+
+gbar_na12    gbar_na16     ThreV    t   gna12(.5)  gna16(.5)   percent_gna16   BoundaryIndex

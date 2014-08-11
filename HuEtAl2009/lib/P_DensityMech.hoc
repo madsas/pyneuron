@@ -1,0 +1,130 @@
+/* ---------------------------------------------
+     Define the Density Mechanisms 
+----------------------------------------------*/
+
+// --------------------------------------------
+//  Install Passive Properties
+// --------------------------------------------
+
+proc install_passive() {
+    
+  // Forall
+  forall {
+    insert pas
+    Ra = ra 
+    cm = c_m 
+    g_pas = 1/rm
+    e_pas = v_init
+  }
+
+  soma.cm=1
+  // Exceptions along the myelinated axon
+  forsec "myelin" cm = cm_myelin
+  forsec "node" g_pas = g_pas_node
+}
+
+
+// --------------------------------------------
+//  Install Active Channels
+// --------------------------------------------
+
+proc  install_channels() {
+
+  /* Add all kinds of channels to all sections*/  
+    forall {
+      insert na gbar_na=0
+      insert na12  gbar_na12=0
+      insert na16  gbar_na16=0
+      insert kv    gbar_kv=0
+      insert km    gbar_km=0
+      insert kca   gbar_kca=0
+      insert ca    gbar_ca=0
+     }
+  
+    // Added by Hu    
+    vshift_na12 = -35 - vhalf_na12 -10  // negative shift of input voltage, high threshold  -30mV    
+    vshift_na16 = -35 - vhalf_na16 -10    // positive shift of input voltage, low threshold  -43mV
+    vshift_na = -35 - vhalf_na -10  // the same as Na12
+
+  
+  
+  /* Channel Constants */         
+    forall if(ismembrane("k_ion")) ek = Ek
+    forall if(ismembrane("na_ion")) ena = Ena
+    forall if(ismembrane("ca_ion")) {
+      eca = Eca
+      ion_style("ca_ion",0,1,0,0,0)
+      vshift_ca = 0
+    }
+  
+  /* Somatodendritic */
+    forsec somatodendritic {
+      gbar_na = gna12_dend    // 80
+      gbar_kv = gkv_dend        // 20                            
+      gbar_km  = gkm            // 0.3                           
+      gbar_kca = gkca           // 0.3                           
+      gbar_ca = gca             // 0.3                           
+      insert cad                // Internal calcium concentration mechanism only at somatodendritic region.
+    }
+    soma {
+      gbar_na=gna12_soma          // 80
+      gbar_kv = gkv_soma            // 20 
+      gbar_km = gkm_soma            // 0.3
+      gbar_kca = gkca_soma          // 0.3
+      gbar_ca = gca_soma            // 0.3
+    }
+  
+  /* hill -> ais[0] -> ... -> ais[9] */
+    
+    // Nav 1.2   ( gna12_ais_max=3200, refer to "Nav% iseg.xls")   
+    hill.gbar_na12= gna12_ais_max     		*	1	*	0.8                     
+    ais[0]. gbar_na12= gna12_ais_max      *	0.96	*	1                  								
+    ais[1]. gbar_na12= gna12_ais_max  		*	0.9	*	1                    
+    ais[2]. gbar_na12= gna12_ais_max  		*	0.75	*	1                  
+    ais[3]. gbar_na12= gna12_ais_max  		*	0.55	*	0.95               
+    ais[4]. gbar_na12= gna12_ais_max  		*	0.366985879	*	0.880142857  
+    ais[5]. gbar_na12= gna12_ais_max  		*	0.2	*	0.75                 
+    ais[6]. gbar_na12= gna12_ais_max  		*	0.100330761	*	0.647857143  
+    ais[7]. gbar_na12= gna12_ais_max  		*	0.011532125	*	0.520285714  
+    ais[8]. gbar_na12= gna12_ais_max  		*	0	*	0.428571429            
+    ais[9]. gbar_na12= gna12_ais_max  		*	0	*	0.342857143            
+  	
+    // Nav 1.6  ( gna16_ais_max=3200, refer to "Nav% iseg.xls" )
+    hill.gbar_na16 = gna16_ais_max	    *	0	*	0.8 
+    ais[0]. gbar_na16 = gna16_ais_max	*	0.04	*	1   
+    ais[1]. gbar_na16 = gna16_ais_max	*	0.1	*	1   
+    ais[2]. gbar_na16 = gna16_ais_max	*	0.25	*	1   
+    ais[3]. gbar_na16 = gna16_ais_max	*	0.45	*	0.95   
+    ais[4]. gbar_na16 = gna16_ais_max	*	0.633014121	*	0.880142857   
+    ais[5]. gbar_na16 = gna16_ais_max	*	0.8	*	0.75   
+    ais[6]. gbar_na16 = gna16_ais_max	*	0.899669239	*	0.647857143   
+    ais[7]. gbar_na16 = gna16_ais_max	*	0.988467875	*	0.520285714   
+    ais[8]. gbar_na16 = gna16_ais_max	*	1	*	0.428571429   
+    ais[9]. gbar_na16 = gna16_ais_max	*	1	*	0.342857143   
+                                     
+    // Kv delayed rectifier channels  ( gkv_axon=1000 )
+    hill.gbar_kv = gkv_axon	*	0.1              
+    ais[0]. gbar_kv = gkv_axon	*	0.2 
+    ais[1]. gbar_kv = gkv_axon	*	0.3 
+    ais[2]. gbar_kv = gkv_axon	*	0.4 
+    ais[3]. gbar_kv = gkv_axon	*	0.5 
+    ais[4]. gbar_kv = gkv_axon	*	0.6 
+    ais[5]. gbar_kv = gkv_axon	*	0.7 
+    ais[6]. gbar_kv = gkv_axon	*	0.8 
+    ais[7]. gbar_kv = gkv_axon	*	0.9
+    ais[8]. gbar_kv = gkv_axon	*	1
+    ais[9]. gbar_kv = gkv_axon	*	1
+    
+    
+  /*  Nakeaxon */
+    nakeaxon  {
+      gbar_na16 = gna16_nakeaxon	    // 300, artificial (ought to be 1600)
+      gbar_na12 = 0
+      gbar_kv = 1500
+    }  
+    
+  /* ( Myelin[0] Node[0] ) -> ... -> ( Myelin[n_myelin] Node[n_myelin] )  */
+    forsec "myelin" gbar_na = gna12_myelin    // 20
+    forsec "node" gbar_na16 = gna16_ais_max/2  // 1600 
+
+}

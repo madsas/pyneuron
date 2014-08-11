@@ -1,0 +1,72 @@
+/*
+  Change Densities to Test the Threshold Voltage/Current for AP Initiation in Uniform Axon
+*/
+
+objref  vecThreV, f, matThreV, normAp
+
+
+thr=70  // v/s
+maxt=10
+precision=0.5
+
+// Recording Preparing
+f = new File()
+f.wopen("recording/ThreV.dat")
+f.printf("L = %g, nseg = %g\n",L,nseg)
+f.printf("Spontaneous Spike Threshold Criterion: dv/dt> %gV/S within %gms . \n",thr,maxt)
+f.printf("Spon_ThreV has a precision of %gmV.\n\n",precision)
+
+f.printf("gbar_na12  gbar_na16  Spon_ThreV  gna12(.5)  gna16(.5)   percent_gna16\n")
+
+loops=0
+  
+// Loops
+for (i=1;i<=81;i=i+4) {
+  loops=loops+1
+  for (j=1;j<=81;j=j+4){
+  
+    // Parameter setting
+    gna12=i*80
+    gna16=j*80
+    install_channels()   // Recall from "U_DensityMech.hoc"
+          
+    dt=0.1 
+    
+    high=-50
+    low=-110
+    v_init=(high+low)/2
+   
+    
+    // Initiation
+    
+    while (abs(v_init-high)>=precision ) {
+      init()
+      e_pas=-70
+      printf("%g\n",v_init)
+      
+      // Run until Trigger 
+      lastv=v(injectPosition) 
+      while (t<=maxt) {
+        fadvance()
+        flushPlot()
+        if (v(injectPosition)-lastv>=thr*dt) break
+        lastv=v(injectPosition)
+      }
+      
+      if (t<=maxt) {       // If this v_init can elicit spon. spike, lower 
+        high=v_init
+        v_init=(2*high+low)/3
+      }else{      // If can't, higher
+        low=v_init
+        v_init=(low+2*high)/3          
+      } 
+    }
+  
+    // Recording 
+    printf("%g %g %g %g %g %g\n", gna12,gna16,v_init,gna_na12, gna_na16, gna_na16/(gna_na12+gna_na16))
+    f.printf("%g %g %g %g %g %g\n", gna12,gna16,v_init,gna_na12, gna_na16, gna_na16/(gna_na12+gna_na16))   
+  }
+  
+}
+
+f.close()

@@ -1,0 +1,13 @@
+
+/* Test to inject dendrites */
+  
+  objref axonCurrent1
+  proc set_stim(){
+    access 
+    somaCurrent1=new IClamp(.5)
+    somaCurrent1.dur = 5000
+    somaCurrent1.del = 1
+    somaCurrent1.amp = 1
+    }
+  set_stim()
+  

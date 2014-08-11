@@ -1,0 +1,74 @@
+/*-----------------------------------------------
+  
+  Action Potential Initiation in Uniform Axon
+  
+-------------------------------------------------*/
+
+
+/* Parameter Settings */
+  
+  // System
+  
+  dt=0.01
+  tstop=100
+  celsius=37
+  delay=0.5
+  injectPosition=0.5
+  
+  // Passive
+  
+  ra        = 150  
+  global_ra = ra
+  rm        = 30000   // g_pas=1/rm
+  c_m       = 1
+  v_init    = -80
+  
+  // Active channels 
+  // Nav
+  Ena = 60
+  gna12 = 3200    // Nav1.2 
+  gna16 = 3200   // Nav1.6
+  vhalf12= -30    
+  vhalf16= -43
+  
+  // Kv
+  Ek = -90  
+  gkv = 1500
+  
+  // Km
+  gkm = .3
+  
+  // Kca
+  gkca = 3
+  
+  // Ca
+  Eca=140
+  gca = .3
+
+
+/* Morphology */
+
+forall delete_section()
+
+xopen("morphology/U_UniformAxon.hoc")
+
+/* Mechanisim */
+
+xopen("lib/U_DensityMech.hoc")
+
+/* Sessions and Recordings */
+
+objref rec_0p5 
+rec_0p5 = new Vector()
+rec_0p5.record(&axon.v(injectPosition))
+
+xopen("session/U_all.ses")
+
+
+/* Experiment */
+
+xopen("experiment/UniformAxon/inject_axon.hoc")
+xopen("experiment/UniformAxon/IClamp_ChangeDens.hoc")
+
+//xopen("experiment/UniformAxon/VClamp_ChangeDens.hoc")
+//xopen ("experiment/UniformAxon/IClamp_ThresI.hoc")

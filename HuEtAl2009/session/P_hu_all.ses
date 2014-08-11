@@ -1,0 +1,207 @@
+objectvar rvp_, rvpaxon_, rNa12_, rNa16_,rNa12SD_, plot_allTraceV, plot_3TraceV_detail, plot_3TraceV, plot_shapePlotV, plot_rangeV,plot_rangeNa
+objectvar scene_vector_[7]
+objectvar ocbox_, ocbox_list_, scene_, scene_list_
+{ocbox_list_ = new List()  scene_list_ = new List()}
+
+// PointProcess Group Manager
+load_file("pointgrp.hoc")
+makeppgm()
+
+// RunControl
+{
+xpanel("RunControl", 0)
+v_init = -70
+xvalue("Init","v_init", 1,"stdinit()", 1, 1 )
+xbutton("Init & Run","run()")
+xbutton("Stop","stoprun=1")
+runStopAt = 5
+xvalue("Continue til","runStopAt", 1,"{continuerun(runStopAt) stoprun=1}", 1, 1 )
+runStopIn = 1
+xvalue("Continue for","runStopIn", 1,"{continuerun(t + runStopIn) stoprun=1}", 1, 1 )
+xbutton("Single Step","steprun()")
+t = 0
+xvalue("t","t", 2 )
+tstop = 100
+xvalue("Tstop","tstop", 1,"tstop_changed()", 0, 1 )
+dt = 0.01
+xvalue("dt","dt", 1,"setdt()", 0, 1 )
+steps_per_ms = 100
+xvalue("Points plotted/ms","steps_per_ms", 1,"setdt()", 0, 1 )
+screen_update_invl = 0.05  
+xvalue("Scrn update invl","screen_update_invl", 1,"", 0, 1 )
+realtime = 0
+xvalue("Real Time","realtime", 0,"", 0, 1 )
+xpanel(7,120)
+}
+
+// Cell Properties Panel
+proc g_dvdt(){
+  xopen("lib/P_Dvdt.hoc")
+  }
+{
+xpanel("Cell Properties", 0)
+//gna12_dend = 80
+xvalue("gna12_dend (pS/um2)","gna12_dend", 0,"", 0, 0 )
+//gna12_soma = 80
+xvalue("gna12_soma (pS/um2)","gna12_soma", 0,"", 0, 0 )
+//vshift_na = -5
+xvalue("v1/2_na soma&dend(mV)","vhalf_na", 0,"", 0, 0 )
+//gna16_ais_max = 3200
+xvalue("gna12_ais_max (pS/um2)","gna12_ais_max", 0,"", 0, 0 )
+//vshift_na12 = -5
+xvalue("v1/2_na12(mV)","vhalf_na12", 0,"", 0, 0 )
+//gna16_ais_max=3200
+xvalue("gna16_ais_max (pS/um2)","gna16_ais_max", 0,"", 0, 0 )
+//gna16_node = 3200
+xvalue("gna16_node (pS/um2)","gna16_node", 0,"", 0, 0 )
+//vshift_na16 = 8
+xvalue("v1/2_na16(mV)","vhalf_na16", 0,"", 0, 0 )
+//gkv_dend = 10
+xvalue("gkv_dend (pS/um2)","gkv_dend", 0,"", 0, 0 )
+//gkv_soma = 20
+xvalue("gkv_soma (pS/um2)","gkv_soma", 0,"", 0, 0 )
+//gkv_axon = 1500
+xvalue("gkv_axon (pS/um2)","gkv_axon", 0,"", 0, 0 )
+xbutton("Reinstall Channels","install_channels()")
+xbutton("plot_dvdt","g_dvdt()")
+xpanel(316,133)
+}
+
+// V along the Axon
+{
+plot_rangeV = new Graph(0)
+plot_rangeV.size(-1200,1000,-80,70)
+scene_vector_[3] = plot_rangeV
+{plot_rangeV.view(-1200, -80, 2200, 150, 712, 511, 601.2, 200.8)}
+flush_list.append(plot_rangeV)
+plot_rangeV.save_name("flush_list.")
+objectvar rvp_
+rvp_ = new RangeVarPlot("v")
+dend11[76] rvp_.begin(1)
+node[4] rvp_.end(1)
+soma rvp_.origin(-30)   // set soma(0) as -30 so that the origin of rvp_ is located at soma(1). ONLINE HELP IS WRONG!!
+plot_rangeV.addobject(rvp_, 2, 1, 0.8, 0.9)
+
+// labels
+plot_rangeV.label(0.517253, 0.823471, "soma", 2, 1, 0, 0, 1)
+plot_rangeV.label(0.517964, 0.766434, ">|-|<", 2, 1, 0, 0, 1)
+plot_rangeV.label(0.389221, 0.676792, "dend11[22]", 2, 1, 0, 0, 3)
+plot_rangeV.label(0.351796, 0.618526, "|----------------------------------|", 2, 1, 0, 0, 3)
+plot_rangeV.label(0.543294, 0.663313, "ais", 2, 1, 0, 0, 2)
+plot_rangeV.label(0.542435, 0.61324, "|---|", 2, 1, 0, 0, 2)
+plot_rangeV.label(0.699102, 0.672311, "myelin[0]", 2, 1, 0, 0, 5)
+plot_rangeV.label(0.72006, 0.60508, "|-------|", 2, 1, 0, 0, 5)
+plot_rangeV.label(0.0943114, 0.62749, "V", 2, 1, 0, 0, 7)
+plot_rangeV.label(0.0553892, 0.699203, "dend11[76](0)", 2, 1, 0, 0, 7)
+}                 
+                  
+// Na distribution along the ais
+{                 
+  plot_rangeNa = new Graph(0)
+  plot_rangeNa.view(0,0,90,3300,350,550,250,230)
+  flush_list.append(plot_rangeNa)
+  plot_rangeNa.save_name("flush_list.")
+  objectvar rNa12_, rNa16_ , rNa12SD_
+  rNa12_= new RangeVarPlot("gbar_na12")
+  soma rNa12_.begin(0)
+  ais[9] rNa12_.end(1)
+  //ais[0] rNa12_.origin(0)
+  rNa16_= new RangeVarPlot("gbar_na16")
+  soma rNa16_.begin(0)
+  ais[9] rNa16_.end(1)
+  //ais[0] rNa16_.origin(0)
+  rNa12SD_= new RangeVarPlot("gbar_na")
+  soma rNa12SD_.begin(0)
+  ais[9] rNa12SD_.end(1)
+
+  plot_rangeNa.addobject(rNa12_, 2, 3, 0.8, 0.9)
+  plot_rangeNa.addobject(rNa16_, 1, 3, 0.8, 0.9)
+  plot_rangeNa.addobject(rNa12SD_, 3, 3, 0.8, 0.9)
+}
+
+// All Traces of V
+/*
+{
+plot_allTraceV = new Graph(0)
+plot_allTraceV.size(0,100,-90,60)
+scene_vector_[3] = plot_allTraceV
+{plot_allTraceV.view(0, -90, 100, 150, 964, 411, 400.5, 300.7)}
+graphList[0].append(plot_allTraceV)
+plot_allTraceV.save_name("graphList[0].")
+plot_allTraceV.addexpr("dend11[32].v(0.5)", 3, 2, 0.8, 0.9, 2)
+plot_allTraceV.addexpr("dend11[22].v(0.5)", 3, 2, 0.8, 0.9, 2)
+plot_allTraceV.addvar("soma.v( 0.5 )", 1, 3, 0.8, 0.9, 2)
+plot_allTraceV.addexpr("hill.v( 0.5 )", 2, 1, 0.8, 0.9, 2)
+plot_allTraceV.addexpr("ais[0].v( 0.5 )", 2, 1, 0.8, 0.9, 2)
+plot_allTraceV.addexpr("ais[1].v( 0.5 )", 7, 6, 0.8, 0.9, 2)
+plot_allTraceV.addexpr("ais[2].v( 0.5 )", 6, 6, 0.8, 0.9, 2)
+plot_allTraceV.addexpr("ais[3].v( 0.5 )", 5, 6, 0.8, 0.9, 2)
+plot_allTraceV.addexpr("ais[4].v( 0.5 )", 4, 6, 0.8, 0.9, 2)
+plot_allTraceV.addexpr("ais[5].v( 0.5 )", 3, 6, 0.8, 0.9, 2)
+plot_allTraceV.addexpr("ais[6].v( 0.5 )", 2, 6, 0.8, 0.9, 2)
+plot_allTraceV.addexpr("ais[7].v( 0.5 )", 9, 6, 0.8, 0.9, 2)
+plot_allTraceV.addexpr("ais[8].v( 0.5 )", 8, 6, 0.8, 0.9, 2)
+plot_allTraceV.addexpr("ais[9].v( 0.5 )", 1, 6, 0.8, 0.9, 2)
+plot_allTraceV.addexpr("nakeaxon.v( 0 )", 7, 5, 0.8, 0.9, 2)
+plot_allTraceV.addexpr("nakeaxon.v( 0.02 )", 7, 5, 0.8, 0.9, 2)
+plot_allTraceV.addexpr("nakeaxon.v( 0.04 )", 7, 5, 0.8, 0.9, 2)
+plot_allTraceV.addexpr("nakeaxon.v( 0.06 )", 7, 5, 0.8, 0.9, 2)
+plot_allTraceV.addexpr("nakeaxon.v( 0.08 )", 7, 5, 0.8, 0.9, 2)
+plot_allTraceV.addexpr("nakeaxon.v( 0.1 )", 7, 5, 0.8, 0.9, 2)
+plot_allTraceV.addexpr("nakeaxon.v( 0.12 )", 7, 5, 0.8, 0.9, 2)
+plot_allTraceV.addexpr("nakeaxon.v( 0.14 )", 7, 5, 0.8, 0.9, 2)
+plot_allTraceV.addexpr("nakeaxon.v( 0.16 )", 7, 5, 0.8, 0.9, 2)
+plot_allTraceV.addexpr("nakeaxon.v( 0.18 )", 7, 5, 0.8, 0.9, 2)
+plot_allTraceV.addvar("nakeaxon.v( 0.2 )", 7, 5, 0.8, 0.9, 2)
+plot_allTraceV.addvar("nakeaxon.v( 0.3 )", 7, 5, 0.8, 0.9, 2)
+plot_allTraceV.addvar("nakeaxon.v( 0.4 )", 7, 5, 0.8, 0.9, 2)
+plot_allTraceV.addvar("nakeaxon.v( 0.5 )", 7, 5, 0.8, 0.9, 2)
+plot_allTraceV.addvar("nakeaxon.v( 0.6 )", 7, 5, 0.8, 0.9, 2)
+plot_allTraceV.addvar("nakeaxon.v( 0.7 )", 7, 5, 0.8, 0.9, 2)
+plot_allTraceV.addvar("nakeaxon.v( 0.8 )", 7, 5, 0.8, 0.9, 2)
+plot_allTraceV.addvar("nakeaxon.v( 0.9 )", 7, 5, 0.8, 0.9, 2)
+plot_allTraceV.addvar("nakeaxon.v( 1 )", 7, 5, 0.8, 0.9, 2)
+plot_allTraceV.addvar("node[0].v( 0.5 )", 5, 5, 0.8, 0.9, 2)
+plot_allTraceV.addexpr("node[4].v( 0.5 )", 5, 1, 0.8, 0.941359, 2)
+}
+*/
+
+
+// Three Traces of V : detailed
+{
+plot_3TraceV_detail = new Graph(0)
+plot_3TraceV_detail.size(0,100,-80,50)
+scene_vector_[4] = plot_3TraceV_detail
+{plot_3TraceV_detail.view(delay-2, -80, 10, 130, 1099, 68, 300.6, 200.8)}
+graphList[0].append(plot_3TraceV_detail)
+plot_3TraceV_detail.save_name("graphList[0].")
+plot_3TraceV_detail.addvar("dend11[22].v(.5)", 3, 3, 0, 1, 2)
+plot_3TraceV_detail.addvar("soma.v(.5)", 1, 3, 0, 1, 2)
+plot_3TraceV_detail.addvar("ais[5].v(1)", 2, 3, 0, 1, 2)
+}
+// Three Traces of V : all time 
+{
+plot_3TraceV = new Graph(0)
+plot_3TraceV.size(0,100,-80,50)
+scene_vector_[4] = plot_3TraceV
+{plot_3TraceV.view(0, -80, 100, 130, 1099, 68, 300.6, 200.8)}
+graphList[0].append(plot_3TraceV)
+plot_3TraceV.save_name("graphList[0].")
+plot_3TraceV.addvar("dend11[22].v(.5)", 3, 3, 0, 1, 2)
+plot_3TraceV.addvar("soma.v(.5)", 1, 3, 0, 1, 2)
+plot_3TraceV.addvar("ais[5].v(1)", 2, 3, 0, 1, 2)
+}
+
+// ShapePlot of V
+{
+plot_shapePlotV = new PlotShape(0)
+plot_shapePlotV.size(-1090.04,748.086,-206.227,1656.04)
+plot_shapePlotV.variable("v")
+scene_vector_[6] = plot_shapePlotV
+{plot_shapePlotV.view(-1090.04, -206.227, 1838.12, 1862.27, 584, 48, 280.8, 285.4)}
+fast_flush_list.append(plot_shapePlotV)
+plot_shapePlotV.exec_menu("Shape Plot")
+plot_shapePlotV.save_name("fast_flush_list.")
+}
+objectvar scene_vector_[1]
+{doNotify()}

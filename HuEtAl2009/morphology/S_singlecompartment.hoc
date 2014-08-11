@@ -1,0 +1,71 @@
+
+// singlecompartmen--an mimic nucleated patch to test properties of inserted soidum channel
+//------------------------------------------------------------------------
+strdef neuron_name
+neuron_name = "scp"
+
+create    soma 
+ 
+soma {
+    nseg = 10
+    diam = 10
+  	L = 10
+   
+    //-------------------Hou Han 081003 -------------------------------
+    // Notice that the time course of sodium channel depends on some external parameters, 
+    //   like:
+    //      1. celsius (global temperature, influences the most heavily on the time course as shown below)
+    //   since we check it with a singlecompartment model, properties of the cell should also be involved: 
+    //      2. cm (membrane capacity, the first term "cm * dV/dt" in HH equation, doesn't act on CHANNEL but on CELL)
+    //           Ideally, the term "dV/dt" should equal 0 in the V-clamp case (Hodgkin and Huxley,1952), 
+    //           but however, NEURON treats all kinds of CLAMPs by a uniform method of solving the whole 
+    //           HH equation without these simplifications, so the term "cm * dV/dt" could have a strong 
+    //           effect on the time course of the membrane, as well as of the sodium channel. For example, 
+    //           setting cm = 100 results in an obvious distortion of the soma.v(0.5) and soma.gna. 
+    //      3. Ra (intracellular resistance, little effect on the time course but a little on the amplitude) 
+    //           Ra is crucial in those propagation cases, but here (single section, non-propagation case) it just controls 
+    //           the "leakage" of channel current to the nearby cytoplasm. So its influence is limited.   
+    //
+    //   Paradoxically, in the NEURON environment which was designed for neurons rather than channels, it is 
+    //      unavoidable that the properties of the "simglecompartment" which we put the channels in will influence
+    //      the properties of the channels which we really care about. So I suggest setting CM = 0 AND RA=INFINITE for the 
+    //      exclusivity of the channels' properties which reflects the perfection of the mimic single-channel recording.    
+    //
+    // ( Fortunately, however, the activation and the inactivation KINETICS are determined only 
+    //   by the internal factors all defined in the .mod file. )  
+    //-----------------------------------------------------------------
+    
+    
+    //---------------------------Hou Han's ---------------------------------
+    celsius=37    // TEMPERATURE is crucial whenever time course is concerned !!
+                  //    near Line 129 of na.mod:  " tadj = q10^((celsius - temp)/10)   
+                  //                                  mtau = 1/tadj/(a+b)   "
+                  //     Greg's tadj = 2.3^((37-23)/10)= 2.3^1.4  
+                  //     default tadj = 2.3^((6.5-23)/10) =2.3^(-1.65)  
+                  //     difference in mtau = 2.3^3.05 = 12.7 times!!
+    
+  	Ra=10000000000000000000000   //  see the comments above
+  	cm=0                         //  see the comments above
+		//-------------------------------------------------------------------
+    
+    
+    //---------------------------Greg's------------------------
+    //  celsius=37
+    //  Ra=100
+    //  cm=0.9
+    //---------------------------------------------------------
+    
+    //----------- former settings of NEURON by default---------
+    // celsius=6.5
+    // Ra=35.4
+    // cm=1
+    //---------------------------------------------------------
+
+}
+
+
+ 
+insert na16
+insert na12
+insert na
+	 

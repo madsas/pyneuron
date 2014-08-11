@@ -1,0 +1,76 @@
+/*
+  Change Densities to Test the Threshold Current for AP Initiation in Uniform Axon
+*/
+
+objref  vecThreV, f, matThreV, normAp
+
+
+thr=70  // v/s
+maxt=10
+v_init=-90
+precision=0.001
+
+xopen("experiment/UniformAxon/inject_axon.hoc")
+
+// Recording Preparing
+f = new File()
+f.wopen("recording/ThreV.dat")
+f.printf("L = %g, nseg = %g, E_pas = %g, v_init = %g\n",L,nseg,e_pas,v_init)
+f.printf("Current Threshold Criterion: dv/dt> %gV/S within %gms . Current Inject at x= %g \n",thr,maxt,injectPosition)
+f.printf("ThresI has a precision of %gnA.\n\n",precision)
+f.printf("percent_gna16: gna16(.5)/(gna16(.5)+gna12(.5))\nBoundaryIndex= (v(1)-v_init)/(v(.5)-v_init) \n\n")
+f.printf("gbar_na12  gbar_na16  ThresI  V(0.5)  gna12(.5)  gna16(.5)   percent_gna16  BoundaryIndex\n")
+
+loops=0
+  
+// Loops
+for (i=1;i<=81;i=i+4) {
+  loops=loops+1
+  for (j=1;j<=81;j=j+4){
+  
+    // Parameter setting
+    gna12=i*80
+    gna16=j*80
+    install_channels()   // Recall from "U_DensityMech.hoc"
+          
+    dt=0.1 
+    
+    high=2
+    low=0
+    axonCurrent1.amp=(high+low)/2
+   
+    
+    // Initiation
+    
+    while (abs(axonCurrent1.amp-high)>=precision ) {
+      init()
+      e_pas=-70
+      
+      printf("%g\n",axonCurrent1.amp)
+      
+      // Run until Trigger 
+      lastv=v(injectPosition) 
+      while (t<=maxt) {
+        fadvance()
+        flushPlot()
+        if (v(injectPosition)-lastv>=thr*dt) break
+        lastv=v(injectPosition)
+      }
+      
+      if (t<=maxt) {       // If this axonCurrent1.amp can elicit spike, lower 
+        high=axonCurrent1.amp
+        axonCurrent1.amp=(2*high+low)/3
+      }else{      // If can't, higher
+        low=axonCurrent1.amp
+        axonCurrent1.amp=(low+2*high)/3          
+      } 
+    }
+  
+    // Recording 
+    printf("%g %g %g %g %g %g %g %g\n", gna12,gna16,axonCurrent1.amp,v(injectPosition),gna_na12(injectPosition), gna_na16(injectPosition), gna_na16(injectPosition)/(gna_na12(injectPosition)+gna_na16(injectPosition)),(v(1)-v_init)/(v(injectPosition)-v_init))
+    f.printf("%g %g %g %g %g %g %g %g \n", gna12,gna16,axonCurrent1.amp,v(injectPosition),gna_na12(injectPosition), gna_na16(injectPosition), gna_na16(injectPosition)/(gna_na12(injectPosition)+gna_na16(injectPosition)),(v(1)-v_init)/(v(injectPosition)-v_init))   
+  }
+  
+}
+
+f.close()

@@ -1,0 +1,89 @@
+[Config]
+Relative path=1
+Compilator.SaveAll=0
+Compilator.Capture=0
+Compilator.HideOutput=0
+Compilator.LogType=0
+DefaultDir=E:\NeuroScience\5_Software\Neuron\HH\Dendrite_and_axon
+DefaultCPIndex=0
+LogtoEnd=1
+DontOpen=0
+FileFormat=0
+[Project tree]
+Neuron
+	+Distinct Nav1.6&Nav1.2 at AIS
+		-mechanism
+			mechanism\na16.mod
+			mechanism\na12.mod
+			mechanism\na.mod
+			mechanism\kv.mod
+			mechanism\km.mod
+			mechanism\kca.mod
+			mechanism\gabaa.mod
+			mechanism\cad.mod
+			mechanism\ca.mod
+		+session
+			session\U_all.ses
+			session\S_g_na.ses
+			session\P_full.ses
+			session\P_simple.ses
+		-morphology
+			morphology\S_singlecompartment.hoc
+			morphology\P_Spines.hoc
+			morphology\P_Soma_Dendrites.hoc
+			morphology\P_Axon.hoc
+			morphology\U_UniformAxon.hoc
+		-lib
+			lib\P_Recording.hoc
+			lib\P_Dvdt.hoc
+			lib\P_DensityMech.hoc
+			lib\S_output.hoc
+			lib\U_DensityMech.hoc
+			lib\U_Dvdt.hoc
+		+experiment
+			+Pyramidal
+				experiment\Pyramidal\whereini.hoc
+				experiment\Pyramidal\play.hoc
+				experiment\Pyramidal\inject_soma.hoc
+				experiment\Pyramidal\inject_dend.hoc
+				experiment\Pyramidal\inject_axon.hoc
+				experiment\Pyramidal\failureThres.hoc
+			+SingleComp
+				experiment\SingleComp\act2.hoc
+			+UniformAxon
+				experiment\UniformAxon\inject_axon.hoc
+				experiment\UniformAxon\IClamp_ChangeDens.hoc
+				experiment\UniformAxon\VClamp_ChangeDens.hoc
+				experiment\UniformAxon\IClamp_ThresI.hoc
+			experiment\UniformAxon_Main.hoc
+			experiment\Pyramidal_Main.hoc
+			experiment\SingleComp_Main.hoc
+		init.hoc
+[Open project files]
+0=init.hoc
+1=experiment\SingleComp_Main.hoc
+2=experiment\Pyramidal_Main.hoc
+3=experiment\UniformAxon_Main.hoc
+4=session\P_simple.ses
+5=session\P_full.ses
+[Selected Project Files]
+Main=init.hoc
+Selected=session\P_simple.ses
+[init.hoc]
+TopLine=1
+Caret=1,1
+[experiment\SingleComp_Main.hoc]
+TopLine=1
+Caret=1,1
+[experiment\Pyramidal_Main.hoc]
+TopLine=1
+Caret=1,12
+[experiment\UniformAxon_Main.hoc]
+TopLine=1
+Caret=13,18
+[session\P_simple.ses]
+TopLine=63
+Caret=45,75
+[session\P_full.ses]
+TopLine=78
+Caret=12,96

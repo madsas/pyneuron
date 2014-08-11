@@ -1,0 +1,80 @@
+objectvar save_window_, rvp_
+objectvar scene_vector_[5]
+objectvar ocbox_, ocbox_list_, scene_, scene_list_, phaseplot_axon,plot_rangeNa, rNa12_, rNa16_
+{ocbox_list_ = new List()  scene_list_ = new List()}
+
+nrncontrolmenu()
+
+{
+save_window_ = new Graph(0)
+save_window_.size(-0.321,5.399,-119.917,74.9167)
+scene_vector_[4] = save_window_
+{save_window_.view(-0.321, -119.917, 5.72, 194.833, 1093, 444, 300.6, 200.8)}
+graphList[0].append(save_window_)
+save_window_.save_name("graphList[0].")
+save_window_.addexpr("v(.5)", 2, 3, 0.788024, 0.9, 2)
+save_window_.addexpr("axon.v( 0)", 1, 3, 0.791018, 1.04791, 2)
+save_window_.addexpr("axon.v( 1)", 9, 3, 0.794012, 1.04791, 2)
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(-0.1,5,0,4400)
+scene_vector_[3] = save_window_
+{save_window_.view(-0.1, 0, 5.1, 4400, 973, 100, 394.2, 200.8)}
+graphList[1].append(save_window_)
+save_window_.save_name("graphList[1].")
+save_window_.addexpr("axon.gna_na12(0.5)", 2, 3, 0.8, 0.9, 2)
+save_window_.addexpr("axon.gna_na16(0.5)", 3, 3, 0.8, 0.9, 2)
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(0,L,-80,40)
+scene_vector_[2] = save_window_
+{save_window_.view(0, -80,L, 120, 600, 300, 300.6, 200.8)}
+flush_list.append(save_window_)
+save_window_.save_name("flush_list.")
+objectvar rvp_
+rvp_ = new RangeVarPlot("v")
+axon rvp_.begin(0)
+axon rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 2, 3, 0.8, 0.9)
+}
+
+
+proc plotdvdt(){ 
+  xopen("lib/U_Dvdt.hoc") 
+}
+{
+  xpanel("dvdt")
+  xbutton("Phase Plot","plotdvdt()")
+  xpanel(0,800)
+}
+
+{
+  phaseplot_axon = new Graph()
+}
+
+
+// Na distribution along the ais
+{                 
+  plot_rangeNa = new Graph(0)
+  plot_rangeNa.view(0,0,6000,8000,200,100,250,230)
+  flush_list.append(plot_rangeNa)
+  plot_rangeNa.save_name("flush_list.")
+  objectvar rNa12_, rNa16_ 
+  rNa12_= new RangeVarPlot("gbar_na12")
+  rNa12_.begin(0)
+  rNa12_.end(1)
+
+  rNa16_= new RangeVarPlot("gbar_na16")
+  rNa16_.begin(0)
+  rNa16_.end(1)
+
+  plot_rangeNa.addobject(rNa12_, 2, 3, 0.8, 0.9)
+  plot_rangeNa.addobject(rNa16_, 1, 3, 0.8, 0.9)
+}
+
+objectvar scene_vector_[1]
+{doNotify()}
+

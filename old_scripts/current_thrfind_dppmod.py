@@ -1,0 +1,91 @@
+import matplotlib.pyplot as plt
+import sqlite3 as sqlite
+import pyneurlib as pdl
+import numpy as np
+
+def get_max_tp(cell, triamp, x_dist_val):
+	[t,i]=pdl.make_triphasic(mydelay,mydur,mydt,mysimtime,triamp)
+	sim = pdl.Simulation(cell,mydt,sim_time = mysimtime)
+	sim.set_exstim([t,i],x_dist=x_dist_val,y_dist = 3,rho = myrho)
+	sim.go()
+	_,som_rec,_ = sim.get_recording()
+	return som_rec
+
+def get_max_dppmod(cell, dpAmp, stimAmp, x_dist_val,y):
+	[t,i]=pdl.make_dppmod(mydelay,dur1,dur2,mydt,mysimtime,dpAmp, stimAmp)
+	sim = pdl.Simulation(cell,mydt,sim_time = mysimtime)
+	sim.set_exstim([t,i],x_dist=x_dist_val,y_dist = y,rho = myrho)
+	sim.go()
+	_,som_rec,ax_rec = sim.get_recording()
+	return som_rec,ax_rec
+
+#cell = pdl.RGC_Neuron('fohlmeister_geo_params_ultralight.csv',ex_flag = True, ex_rand = 70)
+cell = pdl.RGC_Neuron('fohlmeister_geo_params_ultraultralight.csv',ex_flag = True)
+#cell = pdl.RGC_Neuron('fohlmeister_geo_params_light.csv',ex_flag = True)
+#cell = pdl.RGC_Neuron('fohlmeister_geo_params.csv',ex_flag = True)
+
+"""
+global mydt, mydur, mysimtime, myrho, mydelay
+mydt = .01
+mydur = .3
+mysimtime = 200
+myrho = 7900
+mydelay = 100
+"""
+
+global mydt, dur1, dur2, mysimtime, myrho, mydelay
+mydt = .01
+dur1 = .9
+dur2 = .5
+mysimtime = 10
+mydelay = 2
+#myrho = 7900
+
+#threshold finding parameters
+init_triamp = .7e3
+init_ampstep = .2e3
+amp_thr = .025e3
+thr = 0 #mV
+
+#dpAmp = .1e3 #make this variable later?
+stimThr500 = [-300, 25, 200, 225]
+x_dist_vals = [0, 15, 55, 270]
+#rhos = [7900,79000,790]
+myrho = 7900
+##y_dist_vals = [3,30,100]
+#y = 3
+
+#for myrho in rhos:
+for y in y_dist_vals:
+	out = [] #to store output
+	for ind, x_dist_val in enumerate(x_dist_vals): 
+		print
+		print
+		print x_dist_val
+		triamp = init_triamp
+		ampstep = init_ampstep
+	#	dpAmp = stimThr500[ind] - 100 #this factor is important
+		dpAmp = -75 #this factor is important
+		downflg = 0
+		cnt = 0
+		print 'DPP Amp:',dpAmp
+		while ampstep >= amp_thr: 
+			print 'Stim Amp:',triamp
+			msom_rec = max(get_max_dppmod(cell, dpAmp, triamp, x_dist_val,y)[0])
+			max_rec = max(get_max_dppmod(cell, dpAmp, triamp, x_dist_val,y)[1])
+
+			if (msom_rec > thr or max_rec > thr): 
+				triamp -= ampstep
+				downflg = 1
+			elif downflg:
+				ampstep *= 0.5
+				triamp += ampstep
+			else: triamp += ampstep
+
+			cnt += 1
+			if cnt > 20: break
+		out.append(triamp)
+	plt.plot(x_dist_vals,out)
+
+
+

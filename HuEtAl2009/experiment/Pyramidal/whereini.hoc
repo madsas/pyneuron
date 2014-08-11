@@ -1,0 +1,94 @@
+/*
+  Change Parameters to Vary the Initial Site
+*/
+
+objref rangeV, rangeX, fIni, fAp, matAp, normAp, lastRangeV, deltaV
+rangeV = new Vector()    // Record the RangeV 
+rangeX = new Vector()    // Record the real position (um), origin: soma(0)
+lastRangeV = new Vector()  // Record the last range V
+deltaV = new Vector()   // rangeV-lastRangeV
+matAp= new Matrix()     // cache
+
+thr=50  // v/s
+
+
+func iftrigger() {
+  
+  /*if ($1>3) {
+    lastRangeV.sub(rangeV)
+    if (lastRangeV.min<-thr*dt) return 1 else return 0
+  }else return 0
+  */
+  
+  /* Threshold of V*/
+  if (rangeV.max()>0) {
+    return 1
+  }else { 
+    return 0
+  }
+}
+
+// Recording Preparing
+fIni = new File()
+fIni.wopen("recording/WhereIni.dat")
+fIni.printf("Na12_dens  Na12_Vhalf   Ini_site\n")
+fAp = new File()
+fAp.wopen("recording/normAp.dat")
+loops=0
+
+// Plotting Preparing
+//normAp= new Graph()
+
+printf("Na12_dens  Na12_Vhalf   Ini_site\n")
+  
+// Loops
+for (i=40;i>=6;i=i-5) {
+  for (j=-30;j>=-43;j=j-1){
+  
+  loops=loops+1
+  
+  // Parameter setting
+  gna12_ais_max=i*80
+  //gna16_ais_max=j*80
+  vhalf_na12 = j
+  install_channels()   // Recall from "P_DensityMech.hoc" 
+  
+  
+  // Initiation
+  init()
+   
+  // Run until Trigger 
+  while (t<10) {
+    fadvance()
+    flushPlot()
+    rvp_.to_vector(rangeV,rangeX)   // get rvp_ from "hu_all.ses"; rvp_: dend11[76](1) -> soma -> node[4](1)
+    if (iftrigger(t)) break
+    lastRangeV.copy(rangeV)
+  }
+
+  // Record Initial Sites
+  isX=rangeX.x(rangeV.max_ind())   // isX: Inital Site's Position
+  printf("%g %g %g\n",i*80,j,isX)
+  fIni.printf("%g %g %g\n",i*80,j,isX)
+  
+  /*
+  // Plot Normalized AP
+    // normalize
+    rangeV.sub(rangeV.min())
+    rangeV.div(rangeV.max())
+    // save to matrix
+    matAp.resize(rangeV.size(),loops+1)
+    matAp.setcol(loops,rangeV)
+    // plot
+    rangeV.plot(normAp,rangeX)
+    normAp.exec_menu("View = plot")
+    normAp.exec_menu("Keep Lines")
+   */
+}
+}
+
+/*matAp.setcol(0,rangeX)
+matAp.fprint(fAp)
+*/
+fIni.close()
+fAp.close()

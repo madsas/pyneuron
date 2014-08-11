@@ -1,0 +1,50 @@
+/*
+
+*/
+
+proc install_channels(){
+
+  /* Passive */
+  
+  forall {
+    insert pas
+    Ra = ra 
+    cm = c_m 
+    g_pas = 1/rm
+    e_pas = -70
+  }
+
+  /* Active */
+  
+  forall {
+    insert na12  gbar_na12=0
+    insert na16  gbar_na16=0
+    insert kv    gbar_kv=0
+    insert km    gbar_km=0
+    insert kca   gbar_kca=0
+    insert ca    gbar_ca=0
+  }
+  
+  forall if(ismembrane("k_ion")) ek = Ek
+  forall if(ismembrane("na_ion")) {
+    ena = Ena
+    vshift_na12= -35- vhalf12 
+    vshift_na16= -35 - vhalf16 
+  }
+  forall if(ismembrane("ca_ion")) {
+    eca = Eca
+    ion_style("ca_ion",0,1,0,0,0)
+    vshift_ca = 0
+  }
+
+  forall {
+    gbar_na12 = gna12
+    gbar_na16 = gna16
+    gbar_kv = gkv       // 20                            
+    gbar_km  = gkm            // 0.3                           
+    gbar_kca = gkca           // 0.3                           
+    gbar_ca = gca             // 0.3                  
+  }
+}
+
+install_channels()

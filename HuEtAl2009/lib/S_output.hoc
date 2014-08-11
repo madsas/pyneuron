@@ -1,0 +1,22 @@
+
+
+  objref savdata
+  savdata = new File()
+
+ 
+
+  savdata.wopen("recording/actinact.dat")
+
+  savdata.printf("s_act a_act s_inact  a_inact ")
+
+  objref tempmatrix
+  tempmatrix = new Matrix()
+
+  tempmatrix.resize(15,4)
+  tempmatrix.setcol(0, gna_na12_apeak)
+  tempmatrix.setcol(1, gna_na16_apeak)
+  tempmatrix.setcol(2, gna_na12_ipeak)
+  tempmatrix.setcol(3, gna_na16_ipeak)
+  tempmatrix.fprint(savdata, " %g")
+  savdata.close()
+ 

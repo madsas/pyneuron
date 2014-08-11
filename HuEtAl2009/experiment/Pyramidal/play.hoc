@@ -1,0 +1,8 @@
+
+
+objref somaVClamp
+dend11[0] somaVClamp= new SEClamp(.5)
+somaVClamp.dur1=1
+somaVClamp.amp1=v_init
+somaVClamp.dur2=10
+somaVClamp.amp2=30

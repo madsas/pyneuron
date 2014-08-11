@@ -1,0 +1,42 @@
+/* ------------------------------------------------------------
+
+  Single Compartment Model Where Nav Channels are Tested
+
+-------------------------------------------------------------*/
+
+
+tstop = 50
+steps_per_ms = 40
+dt = 0.025
+
+
+/*------------------------------*/
+
+
+proc channel_test(){
+xpanel("Channel_test")
+xbutton("a. activation","act()")
+xbutton("b. inactivation","inact()")
+xbutton("output","output()")
+xpanel()
+}
+
+
+proc output(){  xopen("lib/S_output.hoc")    }
+
+
+xopen("$(NEURONHOME)/lib/hoc/noload.hoc") 
+
+
+
+forall delete_section()
+xopen("morphology/S_singlecompartment.hoc") 
+load_file("session/S_g_na.ses") 
+for i=0,2{
+  Graph[i].exec_menu("Keep Lines")
+  }
+
+
+xopen("experiment/SingleComp/act2.hoc") 
+
+channel_test() 

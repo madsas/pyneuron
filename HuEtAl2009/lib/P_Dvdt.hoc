@@ -1,0 +1,22 @@
+/* --------------------------------------------
+   Plot the Phaseplot of dvdt Versus v
+-------------------------------------------*/
+
+objref dvdt_soma, dvdt_ais, phaseplot_soma, phaseplot_ais
+
+/* soma */
+dvdt_soma = new Vector()
+dvdt_soma.deriv(rec_soma,dt,1)
+phaseplot_soma = new Graph()
+dvdt_soma.plot(phaseplot_soma,rec_soma)
+phaseplot_soma.exec_menu("View = plot")
+
+/* ais */
+dvdt_ais = new Vector()
+dvdt_ais.deriv(rec_ais[5],dt,1)
+phaseplot_ais = new Graph()
+dvdt_ais.plot(phaseplot_ais,rec_ais[5])
+phaseplot_ais.exec_menu("View = plot")
+
+
+

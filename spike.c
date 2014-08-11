@@ -1,7 +1,6 @@
 /* Created by Language version: 6.2.0 */
 /* NOT VECTORIZED */
 #include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
 #include "scoplib.h"
 #undef PI
@@ -103,14 +102,10 @@ extern double hoc_Exp();
  static int _hoc_states();
  static int _mechtype;
 extern int nrn_get_mechtype();
- extern void _nrn_setdata_reg(int, void(*)(Prop*));
- static void _setdata(Prop* _prop) {
- _p = _prop->param; _ppvar = _prop->dparam;
- }
  static _hoc_setdata() {
  Prop *_prop, *hoc_getdata_range();
  _prop = hoc_getdata_range(_mechtype);
-   _setdata(_prop);
+ _p = _prop->param; _ppvar = _prop->dparam;
  ret(1.);
 }
  /* connect user functions to hoc names */
@@ -249,7 +244,6 @@ static void nrn_alloc(_prop)
  	_ca_sym = hoc_lookup("ca_ion");
  	register_mech(_mechanism, nrn_alloc,nrn_cur, nrn_jacob, nrn_state, nrn_init, hoc_nrnpointerindex, 0);
  _mechtype = nrn_get_mechtype(_mechanism[1]);
-     _nrn_setdata_reg(_mechtype, _setdata);
      _nrn_thread_reg(_mechtype, 2, _update_ion_pointer);
   hoc_register_dparam_size(_mechtype, 11);
  	hoc_register_cvode(_mechtype, _ode_count, 0, 0, 0);
