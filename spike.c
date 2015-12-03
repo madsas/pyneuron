@@ -1,24 +1,31 @@
 /* Created by Language version: 6.2.0 */
 /* NOT VECTORIZED */
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
-#include "scoplib.h"
+#include "scoplib_ansi.h"
 #undef PI
- 
+#define nil 0
 #include "md1redef.h"
 #include "section.h"
+#include "nrniv_mf.h"
 #include "md2redef.h"
-
+ 
 #if METHOD3
 extern int _method3;
 #endif
 
+#if !NRNGPU
 #undef exp
 #define exp hoc_Exp
-extern double hoc_Exp();
+extern double hoc_Exp(double);
+#endif
  
 #define _threadargscomma_ /**/
 #define _threadargs_ /**/
+ 
+#define _threadargsprotocomma_ /**/
+#define _threadargsproto_ /**/
  	/*SUPPRESS 761*/
 	/*SUPPRESS 762*/
 	/*SUPPRESS 763*/
@@ -95,21 +102,34 @@ extern double hoc_Exp();
 #define h _mlhh
 #endif
 #endif
+ 
+#if defined(__cplusplus)
+extern "C" {
+#endif
  static int hoc_nrnpointerindex =  -1;
  /* external NEURON variables */
  /* declaration of user functions */
- static int _hoc_evaluate_fct();
- static int _hoc_states();
+ static void _hoc_evaluate_fct(void);
+ static void _hoc_states(void);
  static int _mechtype;
-extern int nrn_get_mechtype();
- static _hoc_setdata() {
- Prop *_prop, *hoc_getdata_range();
- _prop = hoc_getdata_range(_mechtype);
+extern void _nrn_cacheloop_reg(int, int);
+extern void hoc_register_prop_size(int, int, int);
+extern void hoc_register_limits(int, HocParmLimits*);
+extern void hoc_register_units(int, HocParmUnits*);
+extern void nrn_promote(Prop*, int, int);
+extern Memb_func* memb_func;
+ extern void _nrn_setdata_reg(int, void(*)(Prop*));
+ static void _setdata(Prop* _prop) {
  _p = _prop->param; _ppvar = _prop->dparam;
- ret(1.);
+ }
+ static void _hoc_setdata() {
+ Prop *_prop, *hoc_getdata_range(int);
+ _prop = hoc_getdata_range(_mechtype);
+   _setdata(_prop);
+ hoc_retpushx(1.);
 }
  /* connect user functions to hoc names */
- static IntFunc hoc_intfunc[] = {
+ static VoidFunc hoc_intfunc[] = {
  "setdata_spike", _hoc_setdata,
  "evaluate_fct_spike", _hoc_evaluate_fct,
  "states_spike", _hoc_states,
@@ -147,12 +167,15 @@ extern int nrn_get_mechtype();
  0,0,0
 };
  static double _sav_indep;
- static void nrn_alloc(), nrn_init(), nrn_state();
- static void nrn_cur(), nrn_jacob();
+ static void nrn_alloc(Prop*);
+static void  nrn_init(_NrnThread*, _Memb_list*, int);
+static void nrn_state(_NrnThread*, _Memb_list*, int);
+ static void nrn_cur(_NrnThread*, _Memb_list*, int);
+static void  nrn_jacob(_NrnThread*, _Memb_list*, int);
  
-static int _ode_count();
+static int _ode_count(int);
  /* connect range variables in _p that hoc is supposed to know about */
- static char *_mechanism[] = {
+ static const char *_mechanism[] = {
  "6.2.0",
 "spike",
  "gnabar_spike",
@@ -195,10 +218,10 @@ static int _ode_count();
  static Symbol* _k_sym;
  static Symbol* _ca_sym;
  
-static void nrn_alloc(_prop)
-	Prop *_prop;
-{
-	Prop *prop_ion, *need_memb();
+extern Prop* need_memb(Symbol*);
+
+static void nrn_alloc(Prop* _prop) {
+	Prop *prop_ion;
 	double *_p; Datum *_ppvar;
  	_p = nrn_prop_data_alloc(_mechtype, 47, _prop);
  	/*initialize range parameters*/
@@ -206,7 +229,7 @@ static void nrn_alloc(_prop)
  	gkbar = 0.012;
  	gabar = 0.036;
  	gcabar = 0.002;
- 	gkcbar = 5e-05;
+ 	gkcbar = 5e-005;
  	_prop->param = _p;
  	_prop->param_size = 47;
  	_ppvar = nrn_prop_datum_alloc(_mechtype, 11, _prop);
@@ -231,9 +254,15 @@ static void nrn_alloc(_prop)
  	_ppvar[10]._pval = &prop_ion->param[4]; /* _ion_dicadv */
  
 }
- static _initlists();
+ static void _initlists();
  static void _update_ion_pointer(Datum*);
- _spike_reg() {
+ extern Symbol* hoc_lookup(const char*);
+extern void _nrn_thread_reg(int, int, void(*f)(Datum*));
+extern void _nrn_thread_table_reg(int, void(*)(double*, Datum*, Datum*, _NrnThread*, int));
+extern void hoc_register_tolerance(int, HocStateTolerance*, Symbol***);
+extern void _cvode_abstol( Symbol**, double*, int);
+
+ void _spike_reg() {
 	int _vectorized = 0;
   _initlists();
  	ion_reg("na", -10000.);
@@ -244,11 +273,12 @@ static void nrn_alloc(_prop)
  	_ca_sym = hoc_lookup("ca_ion");
  	register_mech(_mechanism, nrn_alloc,nrn_cur, nrn_jacob, nrn_state, nrn_init, hoc_nrnpointerindex, 0);
  _mechtype = nrn_get_mechtype(_mechanism[1]);
+     _nrn_setdata_reg(_mechtype, _setdata);
      _nrn_thread_reg(_mechtype, 2, _update_ion_pointer);
-  hoc_register_dparam_size(_mechtype, 11);
+  hoc_register_prop_size(_mechtype, 47, 11);
  	hoc_register_cvode(_mechtype, _ode_count, 0, 0, 0);
  	hoc_register_var(hoc_scdoub, hoc_vdoub, hoc_intfunc);
- 	ivoc_help("help ?1 spike /cygdrive/c/Users/Sasidhar/Desktop/CC_Research/my_code/deus_ex_machina/5chan/spike.mod\n");
+ 	ivoc_help("help ?1 spike C:/Users/Aruna/Documents/Medical_School/CC_Research/my_code/deus_ex_machina/5chan/spike.mod\n");
  hoc_register_limits(_mechtype, _hoc_parm_limits);
  hoc_register_units(_mechtype, _hoc_parm_units);
  }
@@ -258,11 +288,11 @@ static char *modelname = "HH style channels for spiking retinal ganglion cells";
 static int error;
 static int _ninits = 0;
 static int _match_recurse=1;
-static _modl_cleanup(){ _match_recurse=1;}
-static evaluate_fct();
-static states();
+static void _modl_cleanup(){ _match_recurse=1;}
+static int evaluate_fct(double);
+static int states();
  
-static int  states (  )  {
+static int  states (  ) {
    evaluate_fct ( _threadargscomma_ v ) ;
    m = m + m_exp * ( m_inf - m ) ;
    h = h + h_exp * ( h_inf - h ) ;
@@ -275,16 +305,14 @@ static int  states (  )  {
 	return 0;
   return 0; }
  
-static int _hoc_states() {
+static void _hoc_states(void) {
   double _r;
    _r = 1.;
- states (  ) ;
- ret(_r);
+ states (  );
+ hoc_retpushx(_r);
 }
  
-static int  evaluate_fct (  _lv )  
-	double _lv ;
- {
+static int  evaluate_fct (  double _lv ) {
    double _la , _lb ;
  _la = ( - 0.6 * ( _lv + 30.0 ) ) / ( ( exp ( - 0.1 * ( _lv + 30.0 ) ) ) - 1.0 ) ;
    _lb = 20.0 * ( exp ( ( - 1.0 * ( _lv + 55.0 ) ) / 18.0 ) ) ;
@@ -318,14 +346,14 @@ static int  evaluate_fct (  _lv )
    c_exp = 1.0 - exp ( - dt / tau_c ) ;
     return 0; }
  
-static int _hoc_evaluate_fct() {
+static void _hoc_evaluate_fct(void) {
   double _r;
    _r = 1.;
- evaluate_fct (  *getarg(1) ) ;
- ret(_r);
+ evaluate_fct (  *getarg(1) );
+ hoc_retpushx(_r);
 }
  
-static int _ode_count(_type)int _type; { hoc_execerror("spike", "cannot be used with CVODE");}
+static int _ode_count(int _type){ hoc_execerror("spike", "cannot be used with CVODE"); return 0;}
  extern void nrn_update_ion_pointer(Symbol*, Datum*, int, int);
  static void _update_ion_pointer(Datum* _ppvar) {
    nrn_update_ion_pointer(_na_sym, _ppvar, 0, 0);
@@ -513,9 +541,9 @@ for (_iml = 0; _iml < _cntml; ++_iml) {
 
 }
 
-static terminal(){}
+static void terminal(){}
 
-static _initlists() {
+static void _initlists() {
  int _i; static int _first = 1;
   if (!_first) return;
 _first = 0;

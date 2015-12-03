@@ -24,7 +24,7 @@ INDEPENDENT {t FROM 0 TO 1 WITH 1 (ms)}
 NEURON {
 	SUFFIX na12
 	USEION na READ ena WRITE ina
-	RANGE m, h, gna, gbar
+	RANGE m, h, gna, gnabar
 	GLOBAL tha, thi1, thi2, qa, qi, qinf, thinf
 	RANGE minf, hinf, mtau, htau 
 	GLOBAL Ra, Rb, Rd, Rg
@@ -32,7 +32,7 @@ NEURON {
 }
 
 PARAMETER {
-	gbar = 1000   	(pS/um2)	: 0.12 mho/cm2
+	gnabar = 0.04   	(mho/cm2)	: 0.12 mho/cm2
 	vshift = -5	(mV)		: voltage shift (affects all)
 								
 	tha  = -43	(mV)		: v 1/2 for act		
@@ -62,13 +62,11 @@ PARAMETER {
 UNITS {
 	(mA) = (milliamp)
 	(mV) = (millivolt)
-	(pS) = (picosiemens)
-	(um) = (micron)
 } 
 
 ASSIGNED {
 	ina 		(mA/cm2)
-	gna		(pS/um2)
+	gna		(mho/cm2)
 	ena		(mV)
 	minf 		hinf
 	mtau (ms)	htau (ms)
@@ -86,7 +84,7 @@ INITIAL {
 
 BREAKPOINT {
         SOLVE states
-        gna = tadj*gbar*m*m*m*h
+        gna = tadj*gnabar*m*m*m*h
 	ina = (1e-4) * gna * (v - ena)
 } 
 

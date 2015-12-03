@@ -1,24 +1,31 @@
 /* Created by Language version: 6.2.0 */
 /* NOT VECTORIZED */
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
-#include "scoplib.h"
+#include "scoplib_ansi.h"
 #undef PI
- 
+#define nil 0
 #include "md1redef.h"
 #include "section.h"
+#include "nrniv_mf.h"
 #include "md2redef.h"
-
+ 
 #if METHOD3
 extern int _method3;
 #endif
 
+#if !NRNGPU
 #undef exp
 #define exp hoc_Exp
-extern double hoc_Exp();
+extern double hoc_Exp(double);
+#endif
  
 #define _threadargscomma_ /**/
 #define _threadargs_ /**/
+ 
+#define _threadargsprotocomma_ /**/
+#define _threadargsproto_ /**/
  	/*SUPPRESS 761*/
 	/*SUPPRESS 762*/
 	/*SUPPRESS 763*/
@@ -28,7 +35,7 @@ extern double hoc_Exp();
  
 #define t nrn_threads->_t
 #define dt nrn_threads->_dt
-#define gbar _p[0]
+#define gnabar _p[0]
 #define gna _p[1]
 #define minf _p[2]
 #define hinf _p[3]
@@ -53,24 +60,37 @@ extern double hoc_Exp();
 #define h _mlhh
 #endif
 #endif
+ 
+#if defined(__cplusplus)
+extern "C" {
+#endif
  static int hoc_nrnpointerindex =  -1;
  /* external NEURON variables */
  extern double celsius;
  /* declaration of user functions */
- static int _hoc_rates();
- static int _hoc_states();
- static int _hoc_trap0();
- static int _hoc_trates();
+ static void _hoc_rates(void);
+ static void _hoc_states(void);
+ static void _hoc_trap0(void);
+ static void _hoc_trates(void);
  static int _mechtype;
-extern int nrn_get_mechtype();
- static _hoc_setdata() {
- Prop *_prop, *hoc_getdata_range();
- _prop = hoc_getdata_range(_mechtype);
+extern void _nrn_cacheloop_reg(int, int);
+extern void hoc_register_prop_size(int, int, int);
+extern void hoc_register_limits(int, HocParmLimits*);
+extern void hoc_register_units(int, HocParmUnits*);
+extern void nrn_promote(Prop*, int, int);
+extern Memb_func* memb_func;
+ extern void _nrn_setdata_reg(int, void(*)(Prop*));
+ static void _setdata(Prop* _prop) {
  _p = _prop->param; _ppvar = _prop->dparam;
- ret(1.);
+ }
+ static void _hoc_setdata() {
+ Prop *_prop, *hoc_getdata_range(int);
+ _prop = hoc_getdata_range(_mechtype);
+   _setdata(_prop);
+ hoc_retpushx(1.);
 }
  /* connect user functions to hoc names */
- static IntFunc hoc_intfunc[] = {
+ static VoidFunc hoc_intfunc[] = {
  "setdata_na16", _hoc_setdata,
  "rates_na16", _hoc_rates,
  "states_na16", _hoc_states,
@@ -79,7 +99,7 @@ extern int nrn_get_mechtype();
  0, 0
 };
 #define trap0 trap0_na16
- extern double trap0();
+ extern double trap0( double , double , double , double );
  /* declare global and static user variables */
 #define Rg Rg_na16
  double Rg = 0.0091;
@@ -138,8 +158,8 @@ extern int nrn_get_mechtype();
  "temp_na16", "degC",
  "vmin_na16", "mV",
  "vmax_na16", "mV",
- "gbar_na16", "pS/um2",
- "gna_na16", "pS/um2",
+ "gnabar_na16", "mho/cm2",
+ "gna_na16", "mho/cm2",
  "mtau_na16", "ms",
  "htau_na16", "ms",
  0,0
@@ -174,15 +194,18 @@ extern int nrn_get_mechtype();
  0,0,0
 };
  static double _sav_indep;
- static void nrn_alloc(), nrn_init(), nrn_state();
- static void nrn_cur(), nrn_jacob();
+ static void nrn_alloc(Prop*);
+static void  nrn_init(_NrnThread*, _Memb_list*, int);
+static void nrn_state(_NrnThread*, _Memb_list*, int);
+ static void nrn_cur(_NrnThread*, _Memb_list*, int);
+static void  nrn_jacob(_NrnThread*, _Memb_list*, int);
  
-static int _ode_count();
+static int _ode_count(int);
  /* connect range variables in _p that hoc is supposed to know about */
- static char *_mechanism[] = {
+ static const char *_mechanism[] = {
  "6.2.0",
 "na16",
- "gbar_na16",
+ "gnabar_na16",
  0,
  "gna_na16",
  "minf_na16",
@@ -196,14 +219,14 @@ static int _ode_count();
  0};
  static Symbol* _na_sym;
  
-static void nrn_alloc(_prop)
-	Prop *_prop;
-{
-	Prop *prop_ion, *need_memb();
+extern Prop* need_memb(Symbol*);
+
+static void nrn_alloc(Prop* _prop) {
+	Prop *prop_ion;
 	double *_p; Datum *_ppvar;
  	_p = nrn_prop_data_alloc(_mechtype, 13, _prop);
  	/*initialize range parameters*/
- 	gbar = 1000;
+ 	gnabar = 0.04;
  	_prop->param = _p;
  	_prop->param_size = 13;
  	_ppvar = nrn_prop_datum_alloc(_mechtype, 3, _prop);
@@ -216,20 +239,27 @@ static void nrn_alloc(_prop)
  	_ppvar[2]._pval = &prop_ion->param[4]; /* _ion_dinadv */
  
 }
- static _initlists();
+ static void _initlists();
  static void _update_ion_pointer(Datum*);
- _na16_reg() {
+ extern Symbol* hoc_lookup(const char*);
+extern void _nrn_thread_reg(int, int, void(*f)(Datum*));
+extern void _nrn_thread_table_reg(int, void(*)(double*, Datum*, Datum*, _NrnThread*, int));
+extern void hoc_register_tolerance(int, HocStateTolerance*, Symbol***);
+extern void _cvode_abstol( Symbol**, double*, int);
+
+ void _na16_reg() {
 	int _vectorized = 0;
   _initlists();
  	ion_reg("na", -10000.);
  	_na_sym = hoc_lookup("na_ion");
  	register_mech(_mechanism, nrn_alloc,nrn_cur, nrn_jacob, nrn_state, nrn_init, hoc_nrnpointerindex, 0);
  _mechtype = nrn_get_mechtype(_mechanism[1]);
+     _nrn_setdata_reg(_mechtype, _setdata);
      _nrn_thread_reg(_mechtype, 2, _update_ion_pointer);
-  hoc_register_dparam_size(_mechtype, 3);
+  hoc_register_prop_size(_mechtype, 13, 3);
  	hoc_register_cvode(_mechtype, _ode_count, 0, 0, 0);
  	hoc_register_var(hoc_scdoub, hoc_vdoub, hoc_intfunc);
- 	ivoc_help("help ?1 na16 /cygdrive/c/Users/Sasidhar/Desktop/CC_Research/my_code/deus_ex_machina/5chan/na16.mod\n");
+ 	ivoc_help("help ?1 na16 C:/Users/Aruna/Documents/Medical_School/CC_Research/my_code/deus_ex_machina/5chan/na16.mod\n");
  hoc_register_limits(_mechtype, _hoc_parm_limits);
  hoc_register_units(_mechtype, _hoc_parm_units);
  }
@@ -244,14 +274,14 @@ static char *modelname = "";
 static int error;
 static int _ninits = 0;
 static int _match_recurse=1;
-static _modl_cleanup(){ _match_recurse=1;}
-static _f_trates();
-static rates();
-static states();
-static trates();
- static _n_trates();
+static void _modl_cleanup(){ _match_recurse=1;}
+static int _f_trates(double);
+static int rates(double);
+static int states();
+static int trates(double);
+ static void _n_trates(double);
  
-static int  states (  )  {
+static int  states (  ) {
    trates ( _threadargscomma_ v + vshift ) ;
    m = m + _zmexp * ( minf - m ) ;
    h = h + _zhexp * ( hinf - h ) ;
@@ -260,15 +290,15 @@ static int  states (  )  {
         //return 0;
   return 0; }
  
-static int _hoc_states() {
+static void _hoc_states(void) {
   double _r;
    _r = 1.;
- states (  ) ;
- ret(_r);
+ states (  );
+ hoc_retpushx(_r);
 }
  static double _mfac_trates, _tmin_trates;
- static _check_trates();
- static _check_trates() {
+ static void _check_trates();
+ static void _check_trates() {
   static int _maktable=1; int _i, _j, _ix = 0;
   double _xi, _tmax;
   static double _sav_dt;
@@ -325,30 +355,37 @@ static int _hoc_states() {
   }
  }
 
- static trates(double _lv){ _check_trates();
+ static int trates(double _lv){ _check_trates();
  _n_trates(_lv);
- return;
+ return 0;
  }
 
- static _n_trates(double _lv){ int _i, _j;
+ static void _n_trates(double _lv){ int _i, _j;
  double _xi, _theta;
  if (!usetable) {
  _f_trates(_lv); return; 
 }
  _xi = _mfac_trates * (_lv - _tmin_trates);
- _i = (int) _xi;
+ if (isnan(_xi)) {
+  minf = _xi;
+  _zmexp = _xi;
+  hinf = _xi;
+  _zhexp = _xi;
+  return;
+ }
  if (_xi <= 0.) {
  minf = _t_minf[0];
  _zmexp = _t__zmexp[0];
  hinf = _t_hinf[0];
  _zhexp = _t__zhexp[0];
  return; }
- if (_i >= 199) {
+ if (_xi >= 199.) {
  minf = _t_minf[199];
  _zmexp = _t__zmexp[199];
  hinf = _t_hinf[199];
  _zhexp = _t__zhexp[199];
  return; }
+ _i = (int) _xi;
  _theta = _xi - (double)_i;
  minf = _t_minf[_i] + _theta*(_t_minf[_i+1] - _t_minf[_i]);
  _zmexp = _t__zmexp[_i] + _theta*(_t__zmexp[_i+1] - _t__zmexp[_i]);
@@ -357,9 +394,7 @@ static int _hoc_states() {
  }
 
  
-static int  _f_trates (  _lv )  
-	double _lv ;
- {
+static int  _f_trates (  double _lv ) {
    double _ltinc ;
  rates ( _threadargscomma_ _lv ) ;
    tadj = pow( q10 , ( ( celsius - temp ) / 10.0 ) ) ;
@@ -368,16 +403,14 @@ static int  _f_trates (  _lv )
    _zhexp = 1.0 - exp ( _ltinc / htau ) ;
     return 0; }
  
-static int _hoc_trates() {
+static void _hoc_trates(void) {
   double _r;
     _r = 1.;
- trates (  *getarg(1) ) ;
- ret(_r);
+ trates (  *getarg(1) );
+ hoc_retpushx(_r);
 }
  
-static int  rates (  _lvm )  
-	double _lvm ;
- {
+static int  rates (  double _lvm ) {
    double _la , _lb ;
  _la = trap0 ( _threadargscomma_ _lvm , tha , Ra , qa ) ;
    _lb = trap0 ( _threadargscomma_ - _lvm , - tha , Rb , qa ) ;
@@ -389,16 +422,14 @@ static int  rates (  _lvm )
    hinf = 1.0 / ( 1.0 + exp ( ( _lvm - thinf ) / qinf ) ) ;
     return 0; }
  
-static int _hoc_rates() {
+static void _hoc_rates(void) {
   double _r;
    _r = 1.;
- rates (  *getarg(1) ) ;
- ret(_r);
+ rates (  *getarg(1) );
+ hoc_retpushx(_r);
 }
  
-double trap0 (  _lv , _lth , _la , _lq )  
-	double _lv , _lth , _la , _lq ;
- {
+double trap0 (  double _lv , double _lth , double _la , double _lq ) {
    double _ltrap0;
  if ( fabs ( _lv / _lth ) > 1e-6 ) {
      _ltrap0 = _la * ( _lv - _lth ) / ( 1.0 - exp ( - ( _lv - _lth ) / _lq ) ) ;
@@ -410,13 +441,13 @@ double trap0 (  _lv , _lth , _la , _lq )
 return _ltrap0;
  }
  
-static int _hoc_trap0() {
+static void _hoc_trap0(void) {
   double _r;
-   _r =  trap0 (  *getarg(1) , *getarg(2) , *getarg(3) , *getarg(4) ) ;
- ret(_r);
+   _r =  trap0 (  *getarg(1) , *getarg(2) , *getarg(3) , *getarg(4) );
+ hoc_retpushx(_r);
 }
  
-static int _ode_count(_type)int _type; { hoc_execerror("na16", "cannot be used with CVODE");}
+static int _ode_count(int _type){ hoc_execerror("na16", "cannot be used with CVODE"); return 0;}
  extern void nrn_update_ion_pointer(Symbol*, Datum*, int, int);
  static void _update_ion_pointer(Datum* _ppvar) {
    nrn_update_ion_pointer(_na_sym, _ppvar, 0, 0);
@@ -464,7 +495,7 @@ for (_iml = 0; _iml < _cntml; ++_iml) {
  }}
 
 static double _nrn_current(double _v){double _current=0.;v=_v;{ {
-   gna = tadj * gbar * m * m * m * h ;
+   gna = tadj * gnabar * m * m * m * h ;
    ina = ( 1e-4 ) * gna * ( v - ena ) ;
    }
  _current += ina;
@@ -555,7 +586,7 @@ for (_iml = 0; _iml < _cntml; ++_iml) {
  { {
  for (; t < _break; t += dt) {
  error =  states();
- if(error){fprintf(stderr,"at line 88 in file na16.mod:\n        SOLVE states\n"); nrn_complain(_p); abort_run(error);}
+ if(error){fprintf(stderr,"at line 87 in file na16.mod:\n        SOLVE states\n"); nrn_complain(_p); abort_run(error);}
  
 }}
  t = _save;
@@ -563,9 +594,9 @@ for (_iml = 0; _iml < _cntml; ++_iml) {
 
 }
 
-static terminal(){}
+static void terminal(){}
 
-static _initlists() {
+static void _initlists() {
  int _i; static int _first = 1;
   if (!_first) return;
    _t_minf = makevector(200*sizeof(double));

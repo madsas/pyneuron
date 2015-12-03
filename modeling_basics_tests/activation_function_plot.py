@@ -1,0 +1,33 @@
+import pyneurlib as pdl
+import numpy as np
+import matplotlib.pyplot as plt
+
+cell = pdl.RGC_Neuron('fohlmeister_geo_params_ultralight.csv',ex_flag = True)
+mydt = 0.05
+mysimtime = 7
+mydelay = 1
+myrho = 7900 #ec medium linear resistance
+mydur = 5
+myamp = -1500
+x = 600
+#x = 40
+y = 30 #z/sqrt(2) <--Rattay
+[t,i] = pdl.make_square(mydelay,mydur,myamp,mysimtime,mydt)
+sim = pdl.Simulation(cell,mydt,sim_time=mysimtime)
+sim.set_exstim([t,i],x,y,myrho)
+sim.go(spaceflg=True)
+t,soma,axon = sim.get_recording()
+
+#plotting
+plt.close('all')
+#plt.plot(i)
+#plt.figure()
+axon = np.transpose(axon)
+#for i in axon: plt.plot(i)
+plt.plot(axon[40])
+plt.figure()
+ind = arange(40)*15
+plt.plot(diff(diff(axon[40])/diff(ind))/diff(ind)[:-1])
+#plt.title('Spatial membrane response to 
+plt.figure()
+plt.plot(soma)
