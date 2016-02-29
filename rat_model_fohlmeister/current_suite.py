@@ -32,7 +32,8 @@ def plot_3d(data, list1, list2, title, list1name, list2name, cbarlabel = 'Stimul
 #cell = pdl.RGC_Neuron('fohlmeister_geo_params_ultraultralight_minaxon.csv',ex_flag = True,ex_rand = 24)
 #cell = pdl.RGC_Neuron('fohlmeister_geo_params_ultraultralight_minaxon_switched.csv',ex_flag = True,ex_rand = 24)
 #cell = pdl.RGC_Neuron('fohlmeister_geo_params_ultraultralight_minaxon.csv',ex_flag = True,ex_rand = 24, dendrite_flag = False)
-cell = pdl.RGC_Neuron('fohlmeister_geo_params_ultraultralight_minaxon.csv',ex_flag = True)
+#cell = pdl.RGC_Neuron('fohlmeister_geo_params_ultraultralight_minaxon.csv',ex_flag = True)
+cell = pdl.RGC_Neuron('fohlmeister_geo_params_ultraultralight_minaxon_rat.csv',ex_flag = True)
 
 #cell = pdl.RGC_Neuron('fohlmeister_geo_params_ultraultralight_minaxon_somaparams.csv',ex_flag = True,ex_rand = 24, dendrite_flag = True)
 
@@ -58,7 +59,7 @@ y_soma_tp_rand_norm = 30
 y_axon_tp_rand_norm = 26
 
 #Just add types as you go
-TEST_TYPE = 21
+TEST_TYPE = 25
 
 #Catalog
 
@@ -434,10 +435,11 @@ if TEST_TYPE == 16:
 if TEST_TYPE == 17:
 	cntlim = 30
 #	durlist = [.2, .3, .6, 1, 2, 3]
-	dur = .4 #fix this
-	dur1 = dur - .1
-	dur2 = .1
-	stim_params = [mydelay, dur1, dur2, mysimtime, mydt, myrho]
+	#durations will be 200 50 100
+	dur1 = .2 #fix this
+	dur2 = .05
+	dur3 = .1
+	stim_params = [mydelay, dur1, dur2, dur3, mysimtime, mydt, myrho]
 
 	dpplist = np.linspace(.01e3,3e3,20)
 	distlist = np.linspace(1,100,20)
@@ -460,24 +462,28 @@ if TEST_TYPE == 17:
 
 #looking at waveforms directly dpp
 if TEST_TYPE == 18:
-	dur1 = .4
-	dur2 = .1
-	amp = 500
-	dppamp = 300
+	dur1 = .2
+	dur2 = .05
+	dur3 = .2
+	amp = 100
+	dppamp = 80
+	#amp = 0
+	#dppamp = 0
 	y = 10
 
-	stim_params = [mydelay, dur1, dur2, mysimtime, mydt, myrho]
+	stim_params = [mydelay, dur1, dur2, dur3, mysimtime, mydt, myrho]
 
-	[t,i] = pdl.make_dppbal(mydelay, dur1, dur2, dppamp, amp, mysimtime, mydt)
+	[t,i] = pdl.make_dppbal(mydelay, dur1, dur2, dur3, dppamp, amp, mysimtime, mydt)
 	sim = pdl.Simulation(cell,mydt,sim_time = mysimtime)
 	sim.set_exstim([t,i],x_dist = x_soma, y_dist = y, rho = myrho)
 	sim.go()
 	sim.show(showAx=0)
 	plt.figure()
 	plt.plot(t,i)
+	plt.show()
 
-	thr = ptl.get_thresh(cell, 'dppbal', init_amp, init_step, x_soma, y, stim_params, cnt_lim = cntlim, dpp_amp = dppamp)
-	print thr
+#	thr = ptl.get_thresh(cell, 'dppbal', init_amp, init_step, x_soma, y, stim_params, cnt_lim = cntlim, dpp_amp = dppamp)
+#	print thr
 
 #looking at waveforms directly square
 if TEST_TYPE == 19:
@@ -614,3 +620,94 @@ if TEST_TYPE == 22:
 
 	#thr = ptl.get_thresh(cell, 'tp', init_amp, init_step, x_soma, y, stim_params, cnt_lim = cntlim)
 	#print thr
+
+#make 3d dppbal plot (distance vs. dpp perc)
+if TEST_TYPE == 23:
+	cntlim = 40
+#	durlist = [.2, .3, .6, 1, 2, 3]
+	#durations will be 200 50 100
+	dur1 = .2 #fix this
+	dur2 = .05
+	dur3 = .1
+	init_amp = -1.5e3
+	stim_params = [mydelay, dur1, dur2, dur3, mysimtime, mydt, myrho]
+	spk_thr = 10
+
+	dppperclist = np.linspace(.5,1,20)
+	distlist = np.linspace(3,20,20)
+	outsoma = np.zeros((len(distlist),len(dppperclist)))
+	outaxon = np.zeros((len(distlist),len(dppperclist)))
+	for distind, dist in enumerate(distlist):
+		for dppind, dpp in enumerate(dppperclist):
+			print dist,dpp
+			thr = ptl.get_thresh_dppperc(cell, 'dppbal', init_amp, init_step, x_soma, dist, stim_params, cnt_lim = cntlim, dpp_perc = dpp, spike_thr = spk_thr)
+			outsoma[distind, dppind] = thr
+			print thr
+			thr = ptl.get_thresh_dppperc(cell, 'dppbal', init_amp, init_step, x_axon, dist - 2, stim_params, cnt_lim = cntlim,dpp_perc = dpp, spike_thr = spk_thr)
+			#try subtraction to get ratio 1 for control values
+			outaxon[distind, dppind] = thr
+
+#	plot_3d(outsoma/1000, dppperclist, distlist, 'Threshold vs. DPP (Balanced) Electrode Distance and Amplitude (Soma)', 'DPP Percentage of Stimulus', 'Electrode Distance [microns]')
+#	plot_3d(outaxon/1000, dppperclist, distlist, 'Threshold vs. DPP (Balanced) Electrode Distance and Amplitude (Axon)', 'DPP Percentage of Stimulus', 'Electrode Distance [microns]')
+#	plot_3d(abs(outaxon/outsoma), dppperclist, distlist, 'Ratio of Threshold vs. DPP (Axon vs. Soma)', 'DPP Percentage of Stimulus', 'Electrode Distance [microns]', 'Stimulation Threshold Ratio', myvmax = (outaxon/outsoma).max())
+
+	save_obj(outsoma,'outsoma-tt23.p')
+	save_obj(outaxon,'outaxon-tt23.p')
+
+#looking at waveforms directly dpp (unbalanced)
+if TEST_TYPE == 24:
+	dur1 = .2
+	dur2 = .05
+#	dur3 = .2
+	amp = -100
+	dppamp = -80
+	#amp = 0
+	#dppamp = 0
+	y = 10
+
+	stim_params = [mydelay, dur1, dur2, mysimtime, mydt, myrho]
+
+	[t,i] = pdl.make_dpp(mydelay, dur1, dur2, dppamp, amp, mysimtime, mydt)
+	sim = pdl.Simulation(cell,mydt,sim_time = mysimtime)
+	sim.set_exstim([t,i],x_dist = x_soma, y_dist = y, rho = myrho)
+	sim.go()
+	sim.show(showAx=0)
+	plt.figure()
+	plt.plot(t,i)
+	plt.show()
+
+#	thr = ptl.get_thresh(cell, 'dppbal', init_amp, init_step, x_soma, y, stim_params, cnt_lim = cntlim, dpp_amp = dppamp)
+#	print thr
+
+#make 3d dpp plot (distance vs. dpp perc) UNBALANCED
+if TEST_TYPE == 25:
+	cntlim = 30
+#	durlist = [.2, .3, .6, 1, 2, 3]
+	#durations will be 200 50 100
+	dur1 = .2 #fix this
+	dur2 = .05
+#	dur3 = .1
+	init_amp = -1.5e3
+	stim_params = [mydelay, dur1, dur2, mysimtime, mydt, myrho]
+	spk_thr = 1
+
+	dppperclist = np.linspace(.5,1,20)
+	distlist = np.linspace(3,20,20)
+	outsoma = np.zeros((len(distlist),len(dppperclist)))
+	outaxon = np.zeros((len(distlist),len(dppperclist)))
+	for distind, dist in enumerate(distlist):
+		for dppind, dpp in enumerate(dppperclist):
+			print dist,dpp
+			thr = ptl.get_thresh_dppperc(cell, 'dpp', init_amp, init_step, x_soma, dist, stim_params, cnt_lim = cntlim, dpp_perc = dpp, spike_thr = spk_thr)
+			outsoma[distind, dppind] = thr
+			print thr
+			thr = ptl.get_thresh_dppperc(cell, 'dpp', init_amp, init_step, x_axon, dist - 2, stim_params, cnt_lim = cntlim,dpp_perc = dpp, spike_thr = spk_thr)
+			#try subtraction to get ratio 1 for control values
+			outaxon[distind, dppind] = thr
+
+#	plot_3d(outsoma/1000, dppperclist, distlist, 'Threshold vs. DPP (Balanced) Electrode Distance and Amplitude (Soma)', 'DPP Percentage of Stimulus', 'Electrode Distance [microns]')
+#	plot_3d(outaxon/1000, dppperclist, distlist, 'Threshold vs. DPP (Balanced) Electrode Distance and Amplitude (Axon)', 'DPP Percentage of Stimulus', 'Electrode Distance [microns]')
+#	plot_3d(abs(outaxon/outsoma), dppperclist, distlist, 'Ratio of Threshold vs. DPP (Axon vs. Soma)', 'DPP Percentage of Stimulus', 'Electrode Distance [microns]', 'Stimulation Threshold Ratio', myvmax = (outaxon/outsoma).max())
+
+	save_obj(outsoma,'outsoma-tt25.p')
+	save_obj(outaxon,'outaxon-tt25.p')
