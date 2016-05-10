@@ -482,12 +482,13 @@ def make_dpp(delay,dur1,dur2,dpAmp,stimAmp,total,dt):
 	dpp = np.concatenate((unit1*dpAmp, unit2*stimAmp))
 	return t, np.concatenate((np.zeros(delay/dt), dpp, np.zeros((total/dt-delay/dt-dur1/dt-dur2/dt))))
 
-def make_dppbal(delay,dur1,dur2,dpAmp,stimAmp,total,dt):
+def make_dppbal(delay,dur1,dur2,dur3,dpAmp,stimAmp,total,dt):
 	t = np.arange(total/dt)*dt
 	unit1 = np.ones(np.round(dur1/dt))
 	unit2 = np.ones(dur2/dt)
-	dpp = np.concatenate((unit1*dpAmp, unit2*stimAmp, -unit2*((len(unit1)*dpAmp + len(unit2)*stimAmp)/len(unit2))))
-	return t, np.concatenate((np.zeros(delay/dt), dpp, np.zeros((total/dt-delay/dt-dur1/dt-2*dur2/dt))))
+	unit3 = np.ones(np.round(dur3/dt))
+	dpp = np.concatenate((unit1*dpAmp, unit2*stimAmp, -unit3*((len(unit1)*dpAmp + len(unit2)*stimAmp)/len(unit3))))
+	return t, np.concatenate((np.zeros(delay/dt), dpp, np.zeros((total/dt-delay/dt-dur1/dt-dur2/dt-dur3/dt))))
 
 def make_dppmod(delay,dur1,dur2,dpAmp,stimAmp,total,dt):
 	t = np.arange(total/dt)*dt
